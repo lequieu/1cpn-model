@@ -1,0 +1,4 @@
+# Inputs issued to command line
+./gen_inputs_wlc.py --gamma0 10 .
+# All Parameters used
+Namespace(L0=1.0, gamma0=10.0, natom=10, outputdir='.', theta0=0.0)

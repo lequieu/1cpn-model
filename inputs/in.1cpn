@@ -1,0 +1,165 @@
+# Nucleosome 
+
+# Subversion Info
+#$Revision$
+#$LastChangedDate$
+
+variable isRestart equal 0
+
+units	     real
+dimension    3
+boundary     p p p
+
+
+# atom style, potential type:
+atom_style  hybrid ellipsoid full
+
+# Random number seed for orientation
+variable random equal 12345
+
+# Simulation Temperature
+variable T equal 300
+variable salt equal 200 # in mM
+
+# --------------------------------------------------------------------------
+# calculate Debye Length, assumes that T and salt are defined
+# --------------------------------------------------------------------------
+variable PV equal 8.8541878176E-22   # permittivity of vacuum [C^2/J/A]
+variable KB equal 1.3806505E-23      # Boltzmann constant [J/K]
+variable NA equal 6.0221415E23       # Avogadro constant [1/mol]
+variable EC equal 1.60217653E-19     # elementary charge unit [C]
+
+# Hinckley 2013 eq 15 and 16
+variable esolT equal "249.4 - 7.88E-01 * v_T + 7.20E-04 * v_T * v_T"
+variable esolC equal "(1.000 - (0.2551 * v_salt / 1000) + (0.05151 * v_salt * v_salt / 1000 / 1000) - (0.006889 * v_salt * v_salt * v_salt / 1000 / 1000 / 1000 ))"
+variable esol equal "v_esolT * v_esolC"
+
+# Debye length
+variable ldebye_inv equal "1/sqrt(v_esol * v_PV * v_KB * v_T * 1.0E30 / (2.0 * v_NA * v_EC * v_EC * v_salt))"
+variable ldebye_cut equal "8.0/v_ldebye_inv" # cutoff at 8 ldebye
+# --------------------------------------------------------------------------
+
+dielectric ${esol}
+
+#special_bonds lj 1 1 1
+include in.variables
+include in.fitzewdie
+include in.gauss
+
+# Specify the different interaction styles
+bond_style	     hybrid harmonic gauss
+angle_style	     hybrid cosine wlctwist wlctwistend harmonic orient orient/cosine
+
+# Read in the configuration
+if "${isRestart} == 0" then &
+  "read_data in.lammps" &
+else &
+  "read_restart restart.*"
+
+
+#GB param:                    gamma upsilon  mu  cutoff    
+# zewdie parameters:          e000   ecc2   e220   e222   e224   
+#                             s000   scc2    s220    s222    s224
+#pair_style hybrid  zewdie     1.9152 2.7322 1.2633 2.3440 1.0101 &
+#                              1.6957 -0.7641 -0.1480 -0.2582 0.5112 
+#pair_style hybrid zewdie      0.1286  -0.431 0.9156 1.7216 4.7499 &
+#                              0.9058 -0.458 1.7489 -1.330 1.0399 
+
+pair_style hybrid zewdie     ${pe000}   ${pecc2}   ${pe220}  ${pe222} ${pe224} &
+                             ${ps000}   ${pscc2}   ${ps220}  ${ps222} ${ps224} &
+							 coul/debye ${ldebye_inv} ${ldebye_cut} &
+                  gauss/aniso ${gauss_rcut}
+
+
+## set parameters:
+#set 	     type 1 mass  239566     # Histone = 107616 g/mol, basepairs = 147+28*2 = 203
+#set 	     type 2 mass  1950       # Mass = MW of bp (650g/mol)*3bp
+#set 	     type 1 shape 55 110 110 # set in conf generator?
+#set 	     type 2 shape 20 20 20   # set in conf generator?
+
+
+#parameters that must be determined
+variable kalpha equal 10
+variable korient equal 100
+variable kzeta equal 100
+variable ktwistnucldna equal 10
+variable ktheta equal 3.23/2.0 # From fitting Srot for 601 sequence: x0 = -1.318270, k=3.234, 
+                                       # divide by 2 since applied to entering and exiting dna
+
+#Bond Coeffs
+bond_coeff   1   harmonic ${kbondnucl}     ${lc}          # bond between end bead and nucl
+bond_coeff   2   harmonic ${kbond}     ${lb}          # bead-bead
+bond_coeff   3   harmonic ${kbondnucl} ${la}           # bead-bead stem
+bond_coeff   4   harmonic ${kbondnucl} ${le}       # bead-centerghost 
+bond_coeff   5   harmonic ${kbondnucl} ${ld}       # nucl-centerghost 
+
+#Angle Coeffs
+# kalignment is made up
+# other values are from Stehr SI, check that they're reasonable
+angle_coeff	1	cosine		  ${kangle}                      # bead-bead 
+angle_coeff 2   wlctwist      ${kalign} ${ktwist}     ${omega0}  # bead-bead twist
+#angle_coeff	2	orient  	  angle_f   0.0 0.0 ${ktwist} 0.0 0.0 ${omega0}  # bead-bead twist f-f
+#angle_coeff	13  orient  	  angle_u   ${kalign} 0.0 0.0 0.0 0.0 0.0         # bead-bead twist u-u
+#angle_coeff	3	wlctwistend	${kalign} ${ktwist}     ${omega0}  # bead-bead twist (FOR SOME REASON THIS WAS BLOWING UP)
+angle_coeff	3	orient        angle_u   ${kalign} ${kalign} ${kalign} 0.0 0.0 0.0    # bead-bead twist
+angle_coeff 4   orient        angle_f   0.0 ${kzeta} 0.0 ${zeta} ${zeta} 0.0    # bead(entry/exit)-nucl orient f
+angle_coeff 11  orient        angle_f   ${kzeta} 0.0 0.0 ${zeta} ${zeta} 0.0    # bead(entry/exit)-nucl orient f
+angle_coeff 10  orient/cosine angle_f   0.0 0.0 ${ktheta} 0.0 0.0 ${theta}    # bead(entry/exit)-nucl orient f
+angle_coeff	5	orient        angle_u   ${korient} ${korient} ${korient} 0.0 0.0 0.0    # nucl ghost orient u
+angle_coeff	12  orient        angle_f   ${korient} ${korient} ${korient} 90.0 90.0 0.0    # nucl ghost orient u
+angle_coeff	6	harmonic	  ${kalpha} ${alpha}      # dna-nucl bend angle
+angle_coeff	7	orient        angle_u   0.0 0.0 ${kalpha} 0.0 0.0 ${eta}      # nucl dna align u
+angle_coeff	8	orient        angle_u   0.0 0.0 ${kalpha} 0.0 0.0 ${mu}   # nucl dna align u
+angle_coeff	9	orient        angle_f   0.0 0.0 ${ktwistnucldna} 0.0 0.0 0.0  # bead entry/exit orient f
+
+
+
+
+## potential parameters:
+
+# zewdie     i j style  eps    sig    cutoff
+pair_coeff   1 1 zewdie ${pe0} ${ps0} 300
+pair_coeff   1 2 zewdie 0.1  30.0  80
+# gayberne   i j style       eps   sig  eps:ia  ib  ic  ja  jb  jc  (cutoff)
+#pair_coeff   1 1 gayberne    1.0   55.0     1   0.3 0.3 0   0   0
+#pair_coeff   1 2 gayberne    1.0   20.0     1   0.3 0.3 1   1   1
+pair_coeff   2 2 coul/debye
+pair_coeff   1 3 none
+pair_coeff   2 3 gauss/aniso ${gauss_sig} ${gauss_eps} ${gauss_r0} ${gauss_theta0} ${gauss_phi0} ${gauss_ktheta} ${gauss_kphi}
+pair_coeff   3 3 none
+
+
+################################################################
+
+
+timestep     20  # 1.2 pico-seconds
+
+group dnas molecule 1
+group nucs molecule >= 2
+
+fix 1 all nve/asphere
+fix 2 all langevin   ${T} ${T} 2000 ${random} angmom 3.33333 scale 1 6.0
+
+# Initialize velocities from a Gaussian distribution
+velocity all create ${T} ${random} rot yes mom yes dist gaussian
+
+compute	q all property/atom quatw quati quatj quatk
+compute rot all erotate/asphere
+variable myerot equal c_rot
+variable myetot equal etotal+c_rot
+
+# dump trajectory during corrent iteration:
+dump 1 all custom 10000 traj.dump id type x y z c_q[1] c_q[2] c_q[3] c_q[4]
+
+if "${isRestart} == 1" then &
+  "dump_modify 1 append yes" 
+
+# thermo data:
+thermo_style custom step ebond eangle edihed ecoul epair pe ke c_rot etotal v_myetot temp
+
+thermo	     10000
+thermo_modify flush yes
+
+restart 10000 restart.0 restart.1
+#run	    1000000
+run	    1000000 upto

@@ -1,0 +1,40 @@
+LAMMPS data file
+
+2 atoms
+2 ellipsoids
+0 bonds
+1 angles
+0 dihedrals
+
+1 atom types
+0 bond types
+1 angle types
+0 dihedral types
+
+-1000.0 1000.0 xlo xhi
+-1000.0 1000.0 ylo yhi
+-1000.0 1000.0 zlo zhi
+
+Masses
+
+1 10.000000
+
+Atoms
+
+1 1 0.000000 0.000000 0.000000 1.000000 1.000000 1 0.000000
+2 1 -10.000000 0.000000 0.000000 1.000000 1.000000 2 0.000000
+
+Ellipsoids
+
+1 1.000000 2.000000 2.000000 0.9238795325112867 0.0 0.38268343236508978 0.0
+2 1.000000 2.000000 2.000000 1 2 3 4
+
+Velocities
+
+1 0 0 0 0 0 0
+2 0 0 0 0 0 0
+
+Angles
+
+1 1 1 2 2
+

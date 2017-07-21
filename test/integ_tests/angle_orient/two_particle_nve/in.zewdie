@@ -1,0 +1,79 @@
+# Nucleosome dumbell
+units	     lj
+dimension    3
+boundary     p p p
+
+# atom style, potential type:
+atom_style  hybrid ellipsoid full
+
+# Random number seed for orientation
+variable random equal 12345
+
+# Simulation Temperature
+variable T equal 1.0
+
+#special_bonds lj 1 1 1
+
+# zewdie parameters: e000   ecc2   e220   e222   e224   s000   scc2    s220    s222    s224
+pair_style   zewdie  1.9152 2.7322 1.2633 2.3440 1.0101 1.6957 -0.7641 -0.1480 -0.2582 0.5112
+
+# Specify the different interaction styles
+angle_style	  orient
+
+# Read in the configuration
+read_data in.lammps
+
+# set parameters:
+set 	     group all mass 1.0
+#set 	     group all shape 1 2 2
+#set group all quat/random ${random}
+
+## potential parameters:
+#            i j   eps  sig   cutoff
+pair_coeff   1 1   0.0 1.0  5.0
+#pair_coeff   2 2   1.0  1.0   50
+
+angle_coeff 1 angle_f 1 1 1 0 0 0
+angle_coeff 1 angle_u 1 1 1 0 0 0
+
+################################################################
+
+neighbor 2 nsq
+
+timestep     0.0001
+
+# Initialize velocities from a Gaussian distribution
+#velocity all create ${T} ${random} rot yes mom yes dist gaussian
+
+
+fix 1 all   nve/asphere
+#fix 2 all   langevin   ${T} ${T} 0.00217256 ${random} angmom 3.33333
+#fix 3 all restrain_orient angle_f 1 2 10.0 10.0 0.0
+#fix 4 all restrain bond 1 2 1 1 5
+
+compute	q all property/atom quatw quati quatj quatk
+compute rot all erotate/asphere
+compute mom all property/atom vx vy vz
+compute amom all property/atom angmomx angmomy angmomz
+variable mystep equal step
+variable myerot equal c_rot
+variable myetot equal etotal+0.5*c_rot
+fix 6 all ave/time 1000 1 1000 c_rot v_myetot file energy.dat
+
+#fix 7 all ave/time 1000 1 1000 c_mom[*] c_amom[*] file momentum.dat mode vector
+# dump trajectory during corrent iteration:
+dump	     1 all custom 100 traj.dump id type x y z c_q[1] c_q[2] c_q[3] c_q[4] 
+# dump to check linear and angular momentum are conserved
+dump	     2 all custom 1000 traj-angmom.dump id type x y z c_amom[1] c_amom[2] c_amom[3] mass vx vy vz
+
+# thermo data:
+thermo_style custom step epair eangle pe ke c_rot etotal v_myetot
+
+thermo	     10000
+thermo_modify flush yes
+
+reset_timestep   0
+run	    100000
+#minimize 0 0 100000 1000000
+
+#write_restart  data.rest
