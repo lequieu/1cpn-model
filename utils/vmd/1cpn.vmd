@@ -1,0 +1,101 @@
+axes location off
+display depthcue off
+#color Display Background 6 
+color Display Background 8 
+
+#delete default lines representation
+mol delrep 0 0
+#mol delrep 0 1
+
+mol representation vdw 25.0 #1
+mol addrep 0
+mol modselect 0 0 "name N"
+mol modcolor 0 0 ColorID 1
+mol smoothrep 0 0 5
+
+#mol representation vdw 5.0
+mol representation licorice 8.0
+mol addrep 0
+#mol modselect 1 0 "name He Li Be"
+mol modselect 1 0 "name D N1"
+mol modcolor 1 0 colorID 0
+mol smoothrep 0 1 5
+
+mol representation licorice 8.0
+mol addrep 0
+mol modselect 2 0 "name D1"
+mol modcolor 2 0 colorID 23
+mol smoothrep 0 2 5
+
+mol representation vdw 3
+mol addrep 0
+mol modselect 3 0 "not name N D N1 D1"
+mol smoothrep 0 3 5
+
+mol representation vdw 4.0
+mol addrep 0
+mol modselect 4 0 "name GH"
+mol modcolor 4 0 colorID 12
+mol smoothrep 0 4 5
+
+mol representation vdw 3
+mol addrep 0
+mol modselect 5 0 "name CTD"
+mol modcolor 5 0 colorID 10
+mol smoothrep 0 5 5
+
+#mol representation vdw 0.1
+#mol addrep 0
+#mol modselect 2 0 "Li"
+#mol modcolor 2 0 colorID 0
+#
+#mol representation vdw 0.1
+#mol addrep 0
+#mol modselect 3 0 "Be"
+#mol modcolor 3 0 colorID 0
+
+#mol representation vdw 4
+#mol addrep 0
+#mol modselect 0 0 "all"
+#mol modselect 0 0 "name H"
+#mol modcolor 0 0 ColorID 0
+#
+#mol representation vdw 2
+#mol addrep 0
+#mol modselect 1 0 "all"
+#mol modselect 1 0 "name He"
+#mol modcolor 1 0 ColorID 0
+#
+#mol representation vdw 4
+#mol addrep 1
+#mol modselect 0 1 "all"
+#mol modselect 0 1 "name H"
+#mol modcolor 0 1 ColorID 1
+#
+#mol representation vdw 2
+#mol addrep 1
+#mol modselect 1 1 "all"
+#mol modselect 1 1 "name He"
+#mol modcolor 1 1 ColorID 1
+
+
+
+#set radius and color
+set sel [ atomselect top "name H" ] # nucleosome
+$sel set radius 1.0
+color Name H red
+
+set sel [ atomselect top "name He" ] # DNA
+$sel set radius 0.06
+color Name He blue
+
+#set sel [ atomselect top "name F" ]
+#$sel set radius 20.0
+#color Name F orange2
+#set sel [ atomselect top "name V" ]
+#$sel set radius 20.0
+#color Name V orange2
+#set sel [ atomselect top "name U" ]
+#$sel set radius 20.0
+#color Name U orange2
+
