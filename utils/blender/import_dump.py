@@ -11,18 +11,9 @@ import pdb
 
 path_zewdie = "/media/int_3TB/Work/dna_chromatin/1cpn/viz/trunk/blender/utils/zewdie.stl"
 path_traj = "/media/int_3TB/Work/dna_chromatin/1cpn/viz/trunk/blender/dump/in.dump"
-#path_traj = "/media/int_3TB/Work/dna_chromatin/1cpn/viz/trunk/blender/dump/in_2nucl_2.dump"
-#path_traj = "/media/int_3TB/Work/dna_chromatin/1cpn/viz/trunk/blender/dump/in_1ncp.dump"
-#path_traj = "/media/int_3TB/Work/dna_chromatin/1cpn/viz/trunk/blender/dump/in_1nucl_dnaopen.dump"
-#path_traj = "/media/int_3TB/Work/dna_chromatin/1cpn/viz/trunk/blender/dump/dnaonly.dump"
-#path_traj = "/media/int_3TB/Work/dna_chromatin/1cpn/viz/trunk/blender/dump/traj.dump"
-#path_traj = "/media/int_3TB/Work/dna_chromatin/1cpn/viz/trunk/blender/dump/traj_n30.dump"
-
 
 #path_zewdie = "/home/lequieu/Work/depablo/1cpn/viz/trunk/blender/utils/zewdie.stl"
 #path_traj = "/home/lequieu/Work/depablo/1cpn/viz/trunk/blender/simple.dump"
-#path_traj = "/home/lequieu/Work/depablo/1cpn/viz/trunk/blender/in_2nucl.dump"
-#path_traj = "/home/lequieu/Work/depablo/1cpn/viz/trunk/blender/traj.dump"
 
 SCALEFACTOR=0.05
 # if true, draw bonds within nucl, and create different materials
