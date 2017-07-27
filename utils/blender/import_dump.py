@@ -9,8 +9,9 @@ from mathutils import Vector
 from mathutils import Quaternion
 import pdb
 
-path_zewdie = "/media/int_3TB/Work/dna_chromatin/1cpn/viz/trunk/blender/utils/zewdie.stl"
-path_traj = "/media/int_3TB/Work/dna_chromatin/1cpn/viz/trunk/blender/dump/in.dump"
+path_zewdie = "/media/int_3TB/Work/dna_chromatin/1cpn/1cpn-model/utils/blender/zewdie.stl"
+#path_traj = "/media/int_3TB/Work/dna_chromatin/1cpn/viz/trunk/blender/dump/in.dump"
+path_traj = "/tmp/frame.dump"
 
 #path_zewdie = "/home/lequieu/Work/depablo/1cpn/viz/trunk/blender/utils/zewdie.stl"
 #path_traj = "/home/lequieu/Work/depablo/1cpn/viz/trunk/blender/simple.dump"
@@ -27,7 +28,7 @@ COLORS={'fvec'  :(1,0.05,0.05, 1), #red
         'vvec'  :(0.05,1,0.05, 1), # green
         'uvec'  :(0.05,0.05,1, 1), # dark blue
         'bead'  :(0.111,0.264,1, 1), 
-        'nucldna'  :(0.111,0.264,1, .7),
+        'nucldna'  :(0.111,0.264,1, 1.0),
 #       'dyad' :(1.0,0.386,0.145, 1),
         'dyad' :(1.0,0.921,0.0, 1),
         'plane' :(1, 1, 1, 1),
@@ -38,7 +39,7 @@ COLORS={'fvec'  :(1,0.05,0.05, 1), #red
         'bond-22-nucl':(0.046, 0.500, 0.045, 1.0), # green
 #        'bond-22-nucl':(0.216, 0.013, 1.000, 1.0),
         'bond-22':(0.111,0.264,1, .7), #blue 
-        'bond-22-main':(0.111,0.264,1, .7), #blue 
+        'bond-22-main':(0.111,0.264,1, 1.0), #blue 
         'bond-22-secondary':(.134,.5, .692, 1.0), #light blue
         'bond-13':(0.049, 0.466, 0.805, 1.0) , #light blue
 #        'bond-23':(0.892, 0.282, 0.051, 1.0) , 
@@ -985,6 +986,15 @@ def draw_dna_bond(x1,x2,q1,q2,nameA,nameB,rcylA=7*SCALEFACTOR,rcylB=3*SCALEFACTO
     mat = create_material(name,COLORS[name])
     ob.data.materials.append(mat)
     obs.append(ob)
+
+    bpy.ops.mesh.primitive_uv_sphere_add(size=rcylA, location=x1)
+    bpy.ops.object.shade_smooth()
+    ob = bpy.context.object
+    name = nameA
+    mat = create_material(name,COLORS[name])
+    ob.data.materials.append(mat)
+    obs.append(ob)
+
 
     draw_cyl(start = x1, end=x2,rcyl=rcylA,end_fill_type='NOTHING')
     bpy.ops.object.shade_smooth()
