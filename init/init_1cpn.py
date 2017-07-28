@@ -18,7 +18,9 @@ from vect_quat_util import *
 # mape site names to numbers
 typemap = {'nucl': 1,
            'bead': 2,
-           'ghost': 3 }
+           'ghost': 3,
+           'gh' : 4,
+           'ctd' : 5}
 
 def write_args(args,fnme):
    f=open(fnme,"w")
@@ -51,24 +53,24 @@ def write_lammps_variables(fnme,param,geom):
   fnew.write( "variable theta equal %f\n" % (geom.theta*180.0/np.pi))
   #fnew.write( "variable li equal %f\n" % (i))
 
-  #      stehr      kJ->J   kJ->kcal  ->mol        
+  #      stehr      kJ->J   kJ->kcal  ->mol
   kbond= 1.10e-18 / 1e3     /4.18     * 6.022e23 / (l0/10.0)**3
   fnew.write( "variable kbond equal %f\n" % kbond)
 
-  #       stehr      kJ->J   kJ->kcal  ->mol        
+  #       stehr      kJ->J   kJ->kcal  ->mol
   kangle= 2.06e-19 / 1e3     / 4.18    * 6.022e23 / (l0 / 10.0)
   fnew.write( "variable kangle equal %f\n" % kangle)
 
-  #       stehr      kJ->J   kJ->kcal  ->mol        
+  #       stehr      kJ->J   kJ->kcal  ->mol
   ktwist= 2.67e-19 / 1e3     / 4.18    * 6.022e23 / (l0 / 10.0)
   fnew.write( "variable ktwist equal %f\n" % ktwist)
   fnew.write( "variable kalign equal %f\n" % (ktwist*10))
 
-  #              stehr      kJ->J   kJ->kcal  ->mol        
+  #              stehr      kJ->J   kJ->kcal  ->mol
   #ktwistnucldna= 2.67e-19 / 1e3     / 4.18    * 6.022e23 / ( param.lnucldna / 10.0)
   #fnew.write( "variable ktwistnucldna equal %f\n" % ktwistnucldna)
 
-  #           stehr      kJ->J   kJ->kcal  ->mol        
+  #           stehr      kJ->J   kJ->kcal  ->mol
   kbond_nucl= 1.10e-18 / 1e3     / 4.18    * 6.022e23 / (geom.c / 10.0)
   fnew.write( "variable kbondnucl equal %f\n" % (10*kbond_nucl))
 
@@ -88,29 +90,41 @@ def gen_nucl_nucl_bonds(molecule,offset):
           nucleosomes.append(i+1)
 
    nnucl = len(nucleosomes)
-   
+
    #bond them
    for i in range(nnucl-offset):
-        bondtype = 4 
+        bondtype = 4
         atom1 = nucleosomes[i]
         atom2 = nucleosomes[i+offset]
         molecule.bonds.append(Bond(bondtype,atom1,atom2))
 
-def set_bonded_interactions(molecule):
-  # ================= 
+def set_bonded_interactions(molecule,lhbool):
+  # =================
   # key of types
-  # ================= 
+  # =================
   # atom_type 1  nucleosome
   # atom_type 2  bead
   # atom_type 3  stem (ghost site)
-  molecule.natom_type = 3;
+  # atom_type 4  globular head of linker histone
+  # atom_type 5  c-terminal domain of linker histone
+  if lhbool:
+      molecule.natom_type = 5
+  else:
+      molecule.natom_type = 3
 
   # bond_type 1  bead-nucleosome, length c
   # bond_type 2  bead-bead
   # bond_type 3  bead-bead (enter and exit nucl), length e
   # bond_type 4  bead-centerghost, length j
   # bond_type 5  nucl-centerghost, length i
-  molecule.nbond_type = 5
+  # bond_type 6-14 globular head interactions
+  # bond_type 15  ctd-ctd
+  # bond_type 16  gh-ctd
+  # bond_type 17  gh-nucl
+  if lhbool:
+    molecule.nbond_type = 17
+  else:
+    molecule.nbond_type = 5
 
   # angle_type 1 bead-bead (lp)
   # angle_type 2  bead-bead twist, align
@@ -124,15 +138,30 @@ def set_bonded_interactions(molecule):
   # angle_type 9 bead entry exit orient f, related to how nucl dna can be twisted
   # angle_type 10 bead(entry/exit)-nucl orient f_dna relative to f_nucl, uses kappa
   # angle_type 11 bead(entry/exit)-nucl orient f relative to r, uses zeta (similar to 4, but angle types are different)
-  molecule.nangle_type = 12
+  # angle_type 19 ctd-ctd angle
+  # angle_type 13-18 globular head interactions
+  if lhbool:
+    molecule.nangle_type = 19
+  else:
+    molecule.nangle_type = 12
 
   # no dihedrals yet (might use if H1 is present)
-  molecule.ndihedral_type = 0;
+  # we are now using dihedrals to preserve the structure of the globular head of the linker histone
+  # dihedral_type 1 beads 2-0-3-4 on the globular head
+  # dihderal_type 2 beads 2-1-5-4 on the globular head
+  # dihderal_type 2 beads 3-6-CTD-CTD to prevent rotation of the GH
+  if lhbool:
+    molecule.ndihedral_type = 3;
+  else:
+    molecule.ndihedral_type = 0;
 
   n = len(molecule.ellipsoids)
+  # this allows us to bond the nucleosome to the LH
+  nucl_array = []
+  inucl = 0
   for a1 in range(n-1):
-    ta2 = ta3 = ta4 = ta5 = ta6 = -1 
-    a2 = a3 = a4 = a5 = a6 = -1  
+    ta2 = ta3 = ta4 = ta5 = ta6 = ta7 = -1
+    a2 = a3 = a4 = a5 = a6 = a7 = -1
 
     ta1 = molecule.ellipsoids[a1].mytype
     a2 = a1+1
@@ -149,9 +178,14 @@ def set_bonded_interactions(molecule):
     if (a5 < n-1):
       a6 = a5+1
       ta6 = molecule.ellipsoids[a6].mytype
-    
+    if (a6 < n-1):
+      a7 = a6+1
+      ta7 = molecule.ellipsoids[a7].mytype
+
     # bonds
     # note: entire stem must exist. i.e. there must be an entering and exiting DNA, and two ghost sites
+    if (ta1 == typemap['ghost']):
+        nucl_array.append(a1)
     if (ta1 == typemap['bead']) and (ta2 == typemap['bead']):
       molecule.bonds.append(Bond(2,a1,a2)) #dna-dna bond
     if (ta1 == typemap['bead']) and (ta2 == typemap['nucl']) and (ta3 == typemap['ghost']) and (ta4 == typemap['bead']):
@@ -161,6 +195,24 @@ def set_bonded_interactions(molecule):
       molecule.bonds.append(Bond(4,a3,a1)) #bead-centerghost, length 0.5e
       molecule.bonds.append(Bond(4,a3,a4)) #bead-centerghost, length 0.5e
       molecule.bonds.append(Bond(5,a2,a3)) #bead-centerghost, length 0.5e
+    if ((ta1 == typemap['ctd']) or (ta1 == typemap['ghost']) or (ta1 == typemap['bead'])) and (ta2 == typemap['gh']): # all of the below interactions are gh-gh
+      molecule.bonds.append(Bond(6,a2,a4))
+      molecule.bonds.append(Bond(7,a2,a5))
+      molecule.bonds.append(Bond(8,a3,a4))
+      molecule.bonds.append(Bond(9,a3,a7))
+      molecule.bonds.append(Bond(10,a5,a6))
+      molecule.bonds.append(Bond(11,a6,a7))
+      molecule.bonds.append(Bond(12,a2,a7))
+      molecule.bonds.append(Bond(13,a3,a6))
+      molecule.bonds.append(Bond(14,a4,a5))
+      molecule.bonds.append(Bond(17,nucl_array[inucl],a2))
+      molecule.bonds.append(Bond(17,nucl_array[inucl],a4))
+      molecule.bonds.append(Bond(17,nucl_array[inucl],a5))
+      inucl = inucl + 1
+    if (ta1 == typemap['gh']) and (ta2 == typemap['ctd']): #gh - ctd
+      molecule.bonds.append(Bond(16,a1,a2))
+    if (ta1 == typemap['ctd']) and (ta2 == typemap['ctd']): #ctd - ctd
+      molecule.bonds.append(Bond(15,a1,a2))
     #if (ta1 == typemap['bead']) and (ta2 == typemap['bead']) and (ta3 == typemap['bead']) and (ta4 == typemap['nucl']):
     #  molecule.bonds.append(Bond(5,a1,a4)) # morse bead-nucl
     #  molecule.bonds.append(Bond(6,a1-3,a4)) # morse bead-nucl
@@ -169,7 +221,6 @@ def set_bonded_interactions(molecule):
     #  molecule.bonds.append(Bond(5,a1,a5)) # morse bead-nucl
     #  molecule.bonds.append(Bond(6,a1,a5+3)) # morse bead-nucl
     #  #molecule.bonds.append(Bond(5,a1,a5)) # morse bead-nucl
-      
 
     # angles
     if (ta1 == typemap['bead']) and (ta2 == typemap['bead']):
@@ -192,7 +243,7 @@ def set_bonded_interactions(molecule):
     if (ta1 == typemap['bead']) and (ta2 == typemap['bead']) and (ta3 == typemap['nucl']):
       molecule.angles.append(Angle(3,a1,a2,a2)) #wlctwistend
       molecule.angles.append(Angle(6,a1,a2,a3)) #dna-dna-nucl stem angle
-    if (ta1 == typemap['bead']) and (ta2 == typemap['bead']) and (ta3 == -1): 
+    if (ta1 == typemap['bead']) and (ta2 == typemap['bead']) and (ta3 == -1):
       molecule.angles.append(Angle(3,a1,a2,a2)) #wlctwistend for end of molecule
 
     if (ta1 == typemap['nucl']) and (ta2 == typemap['ghost']) and (ta3 == typemap['bead']) and (ta4 == typemap['bead']):
@@ -203,6 +254,24 @@ def set_bonded_interactions(molecule):
       molecule.angles.append(Angle(12,a2,a3,a3)) #orient nucl u with center ghost
       molecule.angles.append(Angle(9,a1,a4,a4)) #orient enter exit dna with orient f
 
+    #These are the angles for the globular head of the linker histone
+    if ((ta1 == typemap['ctd']) or (ta1 == typemap['ghost']) or (ta1 == typemap['bead'])) and (ta2 == typemap['gh']): # all of the below interactions are gh-gh
+      molecule.angles.append(Angle(13,a4,a2,a5)) #gh angle 1
+      molecule.angles.append(Angle(14,a2,a5,a6)) #gh angle 2
+      molecule.angles.append(Angle(15,a4,a3,a7)) #gh angle 3
+      molecule.angles.append(Angle(16,a3,a6,a7)) #gh angle 4
+      molecule.angles.append(Angle(17,a2,a7,a6)) #gh angle 5
+      molecule.angles.append(Angle(18,a3,a4,a5)) #gh angle 6
+
+    if (ta1 == typemap['ctd']) and (ta2 == typemap['ctd']) and (ta3 == typemap['ctd']):
+      molecule.angles.append(Angle(19,a1,a2,a3))
+
+    #dihedrals for the linker histone
+    if ((ta1 == typemap['ctd']) or (ta1 == typemap['ghost']) or (ta1 == typemap['bead'])) and (ta2 == typemap['gh']): # all of the below interactions are gh-gh
+      molecule.dihedrals.append(Dihedral(1,a4,a2,a5,a6)) #gh dihedral 1
+      molecule.dihedrals.append(Dihedral(2,a4,a3,a7,a6)) #gh dihedral 2
+    if (ta4 == typemap['gh']) and (ta5 == typemap['ctd']):
+      molecule.dihedrals.append(Dihedral(3,a1,a4,a5,a6)) #gh-ctd dihedral
 
 def align_with_1kx5(molecule,param):
 
@@ -218,24 +287,23 @@ def align_with_1kx5(molecule,param):
         9: {'in': (21.001449, 139.245216, 18.249657), 'out': (78.792145, 131.412435, -14.919424), 'nucl': (47.248498, 91.081386, 6.483035)} ,
         10: {'in': (6.672159, 113.122551, 22.479820), 'out': (88.215994, 102.847036, -14.452594), 'nucl': (47.248498, 91.081386, 6.483035)} ,
         11: {'in': (5.231514, 110.051192, 22.080299), 'out': (89.404634, 99.799229, -13.277508), 'nucl': (47.248498, 91.081386, 6.483035)} }
-	
-	pos1kx5 = np.zeros((3,3)) 
+
+	pos1kx5 = np.zeros((3,3))
 	pos1kx5[0] = positions_1kx5[param.nucl_bp_unwrap]['in']
 	pos1kx5[1] = positions_1kx5[param.nucl_bp_unwrap]['out']
 	pos1kx5[2] = positions_1kx5[param.nucl_bp_unwrap]['nucl']
-    
+
     # pos, quat, fvu of chosen nucl
     pos0 = molecule.ellipsoids[inuc].pos
     quat0 = molecule.ellipsoids[inuc].quat
     fvu0 = quat_fvu_rot(np.eye(3),quat0)  # update fvu
-    
+
     #target orientation of first nucl
     # f - aligned with z, u - aligned with y, v - aligend with x
     qgoal = tu2rotquat(-m.pi*2./3.,[1,1,1])
 
     #rotation quat to apply to all sites
     qrot = quat_multiply(qgoal,quat_conj(quat0))
-
 
     # zero position
     for i in range(natoms):
@@ -259,7 +327,7 @@ def calculate_nrl_dna_unwrap(param):
 
   param.dna_linker_length = param.nrl - param.dna_in_nucl
   param.dna_linker_length_ends = param.nrlends - param.dna_in_nucl
-  
+
   # how much nucl dna that can 'unbind' depends on the linker length
   #  this is so any arbitrary linker length can be generated keeping a fixed discritization
   if param.nnucleosomes == 1:
@@ -273,13 +341,13 @@ def calculate_nrl_dna_unwrap(param):
   # correct nrlends if necessary
   modulo = (param.dna_linker_length_ends + param.nucl_bp_unwrap) % param.basepair_per_bead
   l = round((param.dna_linker_length_ends + param.nucl_bp_unwrap) / param.basepair_per_bead) * param.basepair_per_bead
-  nrltmp = l - param.nucl_bp_unwrap + param.dna_in_nucl 
+  nrltmp = l - param.nucl_bp_unwrap + param.dna_in_nucl
   ltmp = l - param.nucl_bp_unwrap
   if modulo != 0:
     print "Warning! NRL of ends spefied (%d) was rounded to %d in order to be consistent with param.nucl_bp_unwrap (%d)  obtained from NRL (%d)" % ( param.nrlends, nrltmp, param.nucl_bp_unwrap, param.nrl)
   param.nrlends = nrltmp
   param.dna_linker_length_ends = ltmp
-  
+
 
 def calculate_geom(geom,param):
   '''Calculate Lengths and Angles corresponding to 1CPN geometry. The image file diagram.svg explains what each of these values are '''
@@ -291,11 +359,10 @@ def calculate_geom(geom,param):
         10: {'c': 48.017333, 'i': 35.357808, 'a': 91.871604} ,
         11: {'c': 47.175048, 'i': 32.370058, 'a': 91.850785} }
 
-
   geom.c = lengths_1kx5[param.nucl_bp_unwrap]['c']  # distance of stem site from nucl center
   geom.i = lengths_1kx5[param.nucl_bp_unwrap]['i']  # vertical distance between entering and exiting DNA sites
   geom.a = lengths_1kx5[param.nucl_bp_unwrap]['a']  #real space distance between entering and exiting DNA sites
-  
+
   geom.f = np.sqrt(geom.a*geom.a - geom.i*geom.i); #horizontal distance between entering and exiting DNA
   geom.g = np.sqrt(geom.c*geom.c - geom.i*geom.i/2.0/2.0)
   geom.h = np.sqrt(geom.g*geom.g - geom.f*geom.f/2.0/2.0)
@@ -336,7 +403,7 @@ class Parameters(object):
                 'nucl_mass',
                 'ghost_mass',
                 'basepair_per_bead',
-                'nrl','nrlends',
+                'nrl','nrlends','lh',
                 'lnucldna',
                 'lengthscale',
                 'dna_linker_length','dna_linker_length_ends',
@@ -354,6 +421,88 @@ class Parameters(object):
         self.twist_per_bp = 2.0*m.pi / 10.0 # radian
         self.rise_per_bp = 3.3 # Angstroms
 
+# current lh parameters come from Luque et al (2014)
+class LinkerHistone(object):
+    __slots__ = ('ctd_mass', 'gh_mass', 'num_in_gh', 'linit',
+                'lequil', 'beta', 'salt_scale', 'lnucllh',
+                'ctd_shape', 'ctd_charges', 'ctd_beads',
+                'ctd_bond_length',)
+    def __init_(self):
+        self.lequil = 15.0; # bond equil length
+        self.ctd_beads = 22; # number of beads in ctd
+
+#Modular function that adds in the linker histones if selected
+def add_linker_histones(molecule,lhist,param):
+
+  #Data taken from Lugue et al 2014 and translated to fit our reference system
+  gh_data={'gh1': {'pos': np.array([52.228, 38.609,10.7562]), 'charge': -3.29 },
+      'gh2': {'pos': np.array([48.939, 30.429, -6.935]), 'charge': 4.22 },
+      'gh3': {'pos': np.array([57.043, 32.130, 5.458]), 'charge': 8.48 },
+      'gh4': {'pos': np.array([45.038, 37.282, 3.817]), 'charge': 0.28 },
+      'gh5': {'pos': np.array([41.897, 39.769, -8.150]), 'charge': 2.08 },
+      'gh6': {'pos': np.array([57.580, 41.316, -4.953]), 'charge': 3.27 }}
+
+  #Change the linker histone to be centered at the dyad in our reference system
+  #gh_change=np.array([2.546,36.589,0.0069])
+  gh_change=np.array([0,0,0])
+  ctd_charges = [0,2,2,3,0,4,0,2,2,4,0,2,3,2,2,2,2,2,2,2,2,3]; # array of H1.4 ctd CG charges
+  iellipsoid = len(molecule.ellipsoids)
+
+  for ellipsoid in molecule.ellipsoids:
+    # after the nucleosome is set we need to add in the linker histone
+    if ellipsoid.mytype == 1:
+        quat = ellipsoid.quat
+        pos  = ellipsoid.pos
+        fvu  = quat_fvu_rot(np.eye(3),quat)
+        fvu0 = np.eye(3)
+        molid = ellipsoid.molid
+
+        # the globular head gets added first
+        for igh in range(lhist.num_in_gh):
+          # print gh bead to string
+          typestr = 'gh%i' % (igh+1)
+          lvec = gh_data[typestr]['pos']
+          # positions need to be rotated about the axis to match 1CPN notation
+          quat_v_rot = tu2rotquat(m.pi/2,fvu0[1])
+          # quat_f_rot = tu2rotquat(m.pi*(1.0-54.0/180),fvu0[0])
+          # the 54.0 degrees is to transfer from Schlick group nucleosome reference system to 1CPN fvu
+          quat_f_rot = tu2rotquat(m.pi*(0.5+54.0/180),fvu0[0])
+          quat_fv_rot = quat_multiply(quat_f_rot, quat_v_rot)
+          lh_quat = quat_multiply(quat, quat_fv_rot)
+          #lh_quat = quat_normalize(lh_quat)
+          lh_pos = quat_vec_rot(lvec,lh_quat) # rotate linker vector by nucl quat
+          lh_pos = np.add(lh_pos,pos) # translate linker position by nucl pos
+
+          mytype = typemap['gh']
+          molecule.ellipsoids.append(Ellipsoid(iellipsoid,mytype,lh_pos/param.lengthscale, quat,gh_data[typestr]["charge"],lhist.ctd_shape,molid))
+          iellipsoid += 1
+
+        # for the other AAs
+        for ictd in range(lhist.ctd_beads):
+          if ictd == 0:
+            lh_pos = np.add(lh_pos,np.multiply(lhist.ctd_bond_length,fvu[2])) #eq dist is 22.64 angstroms
+            q = tu2rotquat(lhist.beta,fvu[0]) #rotate by 110 degrees about f
+            lh_quat = quat_multiply(q,quat)
+            lh_fvu = quat_fvu_rot(fvu0,lh_quat)  # update linker fvu
+          else:
+            # update the rotation of the next lh bead so that the zigzag pattern appears
+            if ictd % 2 == 0:
+                q = tu2rotquat(lhist.beta, fvu[0])
+            else:
+                q = tu2rotquat(-lhist.beta, fvu[0])
+            lh_quat = quat_multiply(q,quat)   # update quat
+            lh_fvu = quat_fvu_rot(fvu0,lh_quat)  # update fvu
+
+            # set position using f,v,u and pre-calculated lengths
+            lh_pos = np.add(lh_pos,np.multiply(lhist.linit, -lh_fvu[2]))
+
+          mytype = typemap["ctd"]
+          # the 1.5 is a prefactor that was included in the original model to reproduce mesoscopic chromatin structure
+          # the salt_scale is the DiSCO calculated scaling for 150mM
+          charge = ctd_charges[ictd]*lhist.salt_scale*1.5
+          molecule.ellipsoids.append(Ellipsoid(iellipsoid,mytype,lh_pos/param.lengthscale,lh_quat,charge,lhist.ctd_shape,molid))
+          #print(quat)
+          iellipsoid += 1
 def main():
 
   parser = argparse.ArgumentParser()
@@ -365,6 +514,7 @@ def main():
   parser.add_argument('-len','--lengthscale',default=1,type=float,help='Normalization length scale. 10 - nanometers, 1 - angstroms, 55 - norm by nucl height')
   parser.add_argument('--nuclbonds',default=0,type=int, help='Generate bonds between neighboring nucleosomes (for joshs cv)')
   parser.add_argument('-d','--d',default=35,type=float,help='length from ghost site to nucl center')
+  parser.add_argument('-lh','--linkerhistone',default=False,type=bool,help='turn on linker histones')
   #parser.add_argument('-bp','--bpbead',default=3, type=int, help='Number of basepairs per bead')
   #parser.add_argument('-c','--stemlength',default=48.18,type=float)
   #parser.add_argument('-d','--stemheight',default=36.93,type=float)
@@ -379,10 +529,11 @@ def main():
   # Input Values
   #------------------------------------------------
   geom.alpha = args.stemangle * m.pi / 180. # alpha that config is initialized to
-  param.nnucleosomes = args.nnucl    
+  param.nnucleosomes = args.nnucl
   p_nucl_nucl_bond_offset = args.nuclbonds; # which nucl do I artificially bond together
   param.lengthscale = args.lengthscale # the normalization factor of output distances
   param.nrl = args.nrl
+  param.lh = args.linkerhistone # linker histone boolean
   geom.d = args.d
 
   if args.nrlends == None:
@@ -390,10 +541,12 @@ def main():
   else:
     param.nrlends = args.nrlends
 
+  if param.lh:
+    lhist = LinkerHistone()
 
   # calculate some parameters
   calculate_nrl_dna_unwrap(param)
- 
+
   # this is a bit of a hack, if there are zero nucleosomes, just draw DNA length of nrl
   if param.nnucleosomes == 0:
     param.dna_linker_length_ends = param.nrl
@@ -401,13 +554,13 @@ def main():
 
   # I dont use this currently, but I might again...
   param.lnucldna = (param.dna_in_nucl - 2*param.nucl_bp_unwrap) * param.rise_per_bp
-  
+
   # calculate geometrical parameters
   calculate_geom(geom,param)
 
   print param.nucl_bp_unwrap
   print geom.theta
-  
+
   #------------------------------------------------
   # Calculate per bead parameters
   #------------------------------------------------
@@ -423,7 +576,7 @@ def main():
   q = [0] * 4
   # fvu0 is the reference coordinate system for nucl and beads
   # to get current reference system, just rotate fvu0 by a quat
-  fvu0 = np.eye(3) 
+  fvu0 = np.eye(3)
 
   #------------------------------------------------
   # Setup molecule
@@ -439,10 +592,29 @@ def main():
   param.bead_mass = param.bp_mass* param.basepair_per_bead               # Mass = MW of bp (650g/mol)*num bp
   param.ghost_mass = 10*param.bead_mass
 
+  # for now the parameters are hard coded
+  if param.lh:
+      lhist.ctd_shape = [18,18,18]
+      lhist.gh_mass = 110.0*80.0/6.0
+      lhist.ctd_mass = 110.0*5.0
+      # I should move these to just be calculated from the xyz values
+      lhist.num_in_gh = 6
+      lhist.salt_scale = 1.68000; # salt scaling of ctd charges at 150 mM
+      lhist.ctd_beads = 22
+      lhist.linit = 7.0; # bond init length
+      lhist.lequil = 15.0 # bond equil length
+      lhist.lnucllh = 33.0 # ghost-lh length
+      lhist.beta = 110.0 * m.pi / 180.; # beta for the ctd
+      lhist.ctd_bond_length = 10.0
+
   # set masses
-  molecule.atom_types.append(AtomType(1,param.nucl_mass)) 
+  molecule.atom_types.append(AtomType(1,param.nucl_mass))
   molecule.atom_types.append(AtomType(2,param.bead_mass))
   molecule.atom_types.append(AtomType(3,param.ghost_mass))
+  # check for the linker histone before adding the atom types
+  if param.lh:
+      molecule.atom_types.append(AtomType(4,lhist.gh_mass))
+      molecule.atom_types.append(AtomType(5,lhist.ctd_mass))
   boxl = 5000/param.lengthscale;
   molecule.set_box(-boxl, boxl, -boxl, boxl, -boxl,boxl)
 
@@ -452,7 +624,7 @@ def main():
   # Main generation loop
   # ====================================
 
-  # counts 
+  # counts
   iellipsoid = 1
 
   # INFO
@@ -467,7 +639,6 @@ def main():
       bead_pos0 = pos
       bead_quat0 = quat
     else:
-      
       # set position of bead following nucl
       pos = np.add(pos,-0.5*geom.i*fvu[0])
       pos = np.add(pos,0.5*geom.f*fvu[1])
@@ -484,12 +655,12 @@ def main():
 
       bead_pos0 = pos
       bead_quat0 = quat
-    
+
     # vary number of beads if 1st or last nucl
     if (inuc==0) or (inuc == param.nnucleosomes):
-      nbp = param.dna_linker_length_ends + param.nucl_bp_unwrap 
+      nbp = param.dna_linker_length_ends + param.nucl_bp_unwrap
     else:
-      nbp = param.dna_linker_length + 2* param.nucl_bp_unwrap 
+      nbp = param.dna_linker_length + 2* param.nucl_bp_unwrap
 
     n_bead_in_linker = int(m.ceil(nbp / param.basepair_per_bead))
 
@@ -508,7 +679,7 @@ def main():
         #  molid = inuc #first bead is part of prev nucl molecule
         #  molecule.ellipsoids.append(Ellipsoid(iellipsoid,mytype,posstem/p_lengthscale,quat,0,ghost_shape,molid))
         #  iellipsoid += 1
-        
+
         mytype = typemap['bead']
         if (inuc != 0):
           molid = inuc #first bead is part of prev nucl molecule
@@ -516,13 +687,13 @@ def main():
           molid = 0      #all non-nucl dna gets molid 0
         molecule.ellipsoids.append(Ellipsoid(iellipsoid,mytype,pos/param.lengthscale,quat,param.charge_per_bead,param.bead_shape,molid))
         iellipsoid += 1
-        
+
       else:
         fvu = quat_fvu_rot(fvu0,quat)
         pos = np.add(pos,np.multiply(param.rise_per_bead,fvu[2]))    # increment position along u
-        q = tu2rotquat(param.twist_per_bead, fvu[2]) # rotate around u 
+        q = tu2rotquat(param.twist_per_bead, fvu[2]) # rotate around u
         quat = quat_multiply(q,quat) # update quat
-           
+
         mytype = typemap['bead']
         if (inuc != param.nnucleosomes) and (ibead == (n_bead_in_linker - 1)):
           molid = inuc+1 #last bead is part of nucl molecule
@@ -531,7 +702,7 @@ def main():
         molecule.ellipsoids.append(Ellipsoid(iellipsoid,mytype,pos/param.lengthscale,quat,param.charge_per_bead,param.bead_shape,molid))
         iellipsoid += 1
 
-        
+
 
     #------------------------------------
     # now generate nucleosome
@@ -550,21 +721,21 @@ def main():
       fvu = quat_fvu_rot(fvu0,quat) # update fvu
 
       # rotate kappa around u
-      q = tu2rotquat(-geom.theta, fvu[2]) 
+      q = tu2rotquat(-geom.theta, fvu[2])
       quat = quat_multiply(q,quat)   # update quat
       fvu = quat_fvu_rot(fvu0,quat)  # update fvu
-      
+
       # rotate first, this makes position update easier
-      q = tu2rotquat(geom.kappa, fvu[0]) 
+      q = tu2rotquat(geom.kappa, fvu[0])
       quat = quat_multiply(q,quat)   # update quat
       fvu = quat_fvu_rot(fvu0,quat)  # update fvu
-      
+
       # set position using f,v,u and pre-calculated lengths
       pos = np.add(pos,-0.5*geom.i*fvu[0])
       pos = np.add(pos,0.5*geom.f*fvu[1])
       pos = np.add(pos,-geom.h*fvu[2])
 
-            
+
       mytype = typemap['nucl']
       molid = inuc + 1
       molecule.ellipsoids.append(Ellipsoid(iellipsoid,mytype,pos/param.lengthscale,quat,param.charge_per_nucleosome,param.nucl_shape,molid))
@@ -578,17 +749,18 @@ def main():
       molecule.ellipsoids.append(Ellipsoid(iellipsoid,mytype,posstem/param.lengthscale,quat,0,param.ghost_shape,molid))
       iellipsoid += 1
 
+  # add in the linker histones
+  if param.lh:
+    add_linker_histones(molecule,lhist,param)
 
-
-    
   # call funciton to set all bonded interactions
-  set_bonded_interactions(molecule)
+  set_bonded_interactions(molecule,param.lh)
 
   # function to position first nucleosome at origin
   if (param.nnucleosomes != 0):
     align_with_1kx5(molecule,param)
 
-  # josh for bonding all nucl together 
+  # josh for bonding all nucl together
   if p_nucl_nucl_bond_offset:
     gen_nucl_nucl_bonds(molecule,param.nucl_nucl_bond_offset)
 
