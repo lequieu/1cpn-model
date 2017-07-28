@@ -148,7 +148,7 @@ angle_coeff 19  harmonic      ${kbeta} ${beta}
 # for the linker histone globular head only
 dihedral_coeff 1 ${ktorsgh} 1 ${ghphi} 0.0
 dihedral_coeff 2 ${ktorsgh} 1 ${ghpsi} 0.0
-dihedral_coeff 3 ${ktorsgh} 1 ${ghupsi} 0.0
+#dihedral_coeff 3 ${ktorsgh} 1 ${ghupsi} 0.0
 
 ## potential parameters:
 

@@ -12,6 +12,7 @@ import argparse
 import sys
 import os.path
 
+from lhistone import *
 from molecule import *
 from vect_quat_util import *
 
@@ -149,9 +150,9 @@ def set_bonded_interactions(molecule,lhbool):
   # we are now using dihedrals to preserve the structure of the globular head of the linker histone
   # dihedral_type 1 beads 2-0-3-4 on the globular head
   # dihderal_type 2 beads 2-1-5-4 on the globular head
-  # dihderal_type 2 beads 3-6-CTD-CTD to prevent rotation of the GH
+  # dihderal_type 3 beads 3-6-CTD-CTD to prevent rotation of the GH - REMOVED
   if lhbool:
-    molecule.ndihedral_type = 3;
+    molecule.ndihedral_type = 2;
   else:
     molecule.ndihedral_type = 0;
 
@@ -270,8 +271,9 @@ def set_bonded_interactions(molecule,lhbool):
     if ((ta1 == typemap['ctd']) or (ta1 == typemap['ghost']) or (ta1 == typemap['bead'])) and (ta2 == typemap['gh']): # all of the below interactions are gh-gh
       molecule.dihedrals.append(Dihedral(1,a4,a2,a5,a6)) #gh dihedral 1
       molecule.dihedrals.append(Dihedral(2,a4,a3,a7,a6)) #gh dihedral 2
-    if (ta4 == typemap['gh']) and (ta5 == typemap['ctd']):
-      molecule.dihedrals.append(Dihedral(3,a1,a4,a5,a6)) #gh-ctd dihedral
+    # taking away the third dihedral
+    #if (ta4 == typemap['gh']) and (ta5 == typemap['ctd']):
+    #  molecule.dihedrals.append(Dihedral(3,a1,a4,a5,a6)) #gh-ctd dihedral
 
 def align_with_1kx5(molecule,param):
 
@@ -422,87 +424,6 @@ class Parameters(object):
         self.rise_per_bp = 3.3 # Angstroms
 
 # current lh parameters come from Luque et al (2014)
-class LinkerHistone(object):
-    __slots__ = ('ctd_mass', 'gh_mass', 'num_in_gh', 'linit',
-                'lequil', 'beta', 'salt_scale', 'lnucllh',
-                'ctd_shape', 'ctd_charges', 'ctd_beads',
-                'ctd_bond_length',)
-    def __init_(self):
-        self.lequil = 15.0; # bond equil length
-        self.ctd_beads = 22; # number of beads in ctd
-
-#Modular function that adds in the linker histones if selected
-def add_linker_histones(molecule,lhist,param):
-
-  #Data taken from Lugue et al 2014 and translated to fit our reference system
-  gh_data={'gh1': {'pos': np.array([52.228, 38.609,10.7562]), 'charge': -3.29 },
-      'gh2': {'pos': np.array([48.939, 30.429, -6.935]), 'charge': 4.22 },
-      'gh3': {'pos': np.array([57.043, 32.130, 5.458]), 'charge': 8.48 },
-      'gh4': {'pos': np.array([45.038, 37.282, 3.817]), 'charge': 0.28 },
-      'gh5': {'pos': np.array([41.897, 39.769, -8.150]), 'charge': 2.08 },
-      'gh6': {'pos': np.array([57.580, 41.316, -4.953]), 'charge': 3.27 }}
-
-  #Change the linker histone to be centered at the dyad in our reference system
-  #gh_change=np.array([2.546,36.589,0.0069])
-  gh_change=np.array([0,0,0])
-  ctd_charges = [0,2,2,3,0,4,0,2,2,4,0,2,3,2,2,2,2,2,2,2,2,3]; # array of H1.4 ctd CG charges
-  iellipsoid = len(molecule.ellipsoids)
-
-  for ellipsoid in molecule.ellipsoids:
-    # after the nucleosome is set we need to add in the linker histone
-    if ellipsoid.mytype == 1:
-        quat = ellipsoid.quat
-        pos  = ellipsoid.pos
-        fvu  = quat_fvu_rot(np.eye(3),quat)
-        fvu0 = np.eye(3)
-        molid = ellipsoid.molid
-
-        # the globular head gets added first
-        for igh in range(lhist.num_in_gh):
-          # print gh bead to string
-          typestr = 'gh%i' % (igh+1)
-          lvec = gh_data[typestr]['pos']
-          # positions need to be rotated about the axis to match 1CPN notation
-          quat_v_rot = tu2rotquat(m.pi/2,fvu0[1])
-          # quat_f_rot = tu2rotquat(m.pi*(1.0-54.0/180),fvu0[0])
-          # the 54.0 degrees is to transfer from Schlick group nucleosome reference system to 1CPN fvu
-          quat_f_rot = tu2rotquat(m.pi*(0.5+54.0/180),fvu0[0])
-          quat_fv_rot = quat_multiply(quat_f_rot, quat_v_rot)
-          lh_quat = quat_multiply(quat, quat_fv_rot)
-          #lh_quat = quat_normalize(lh_quat)
-          lh_pos = quat_vec_rot(lvec,lh_quat) # rotate linker vector by nucl quat
-          lh_pos = np.add(lh_pos,pos) # translate linker position by nucl pos
-
-          mytype = typemap['gh']
-          molecule.ellipsoids.append(Ellipsoid(iellipsoid,mytype,lh_pos/param.lengthscale, quat,gh_data[typestr]["charge"],lhist.ctd_shape,molid))
-          iellipsoid += 1
-
-        # for the other AAs
-        for ictd in range(lhist.ctd_beads):
-          if ictd == 0:
-            lh_pos = np.add(lh_pos,np.multiply(lhist.ctd_bond_length,fvu[2])) #eq dist is 22.64 angstroms
-            q = tu2rotquat(lhist.beta,fvu[0]) #rotate by 110 degrees about f
-            lh_quat = quat_multiply(q,quat)
-            lh_fvu = quat_fvu_rot(fvu0,lh_quat)  # update linker fvu
-          else:
-            # update the rotation of the next lh bead so that the zigzag pattern appears
-            if ictd % 2 == 0:
-                q = tu2rotquat(lhist.beta, fvu[0])
-            else:
-                q = tu2rotquat(-lhist.beta, fvu[0])
-            lh_quat = quat_multiply(q,quat)   # update quat
-            lh_fvu = quat_fvu_rot(fvu0,lh_quat)  # update fvu
-
-            # set position using f,v,u and pre-calculated lengths
-            lh_pos = np.add(lh_pos,np.multiply(lhist.linit, -lh_fvu[2]))
-
-          mytype = typemap["ctd"]
-          # the 1.5 is a prefactor that was included in the original model to reproduce mesoscopic chromatin structure
-          # the salt_scale is the DiSCO calculated scaling for 150mM
-          charge = ctd_charges[ictd]*lhist.salt_scale*1.5
-          molecule.ellipsoids.append(Ellipsoid(iellipsoid,mytype,lh_pos/param.lengthscale,lh_quat,charge,lhist.ctd_shape,molid))
-          #print(quat)
-          iellipsoid += 1
 def main():
 
   parser = argparse.ArgumentParser()
@@ -597,15 +518,6 @@ def main():
       lhist.ctd_shape = [18,18,18]
       lhist.gh_mass = 110.0*80.0/6.0
       lhist.ctd_mass = 110.0*5.0
-      # I should move these to just be calculated from the xyz values
-      lhist.num_in_gh = 6
-      lhist.salt_scale = 1.68000; # salt scaling of ctd charges at 150 mM
-      lhist.ctd_beads = 22
-      lhist.linit = 7.0; # bond init length
-      lhist.lequil = 15.0 # bond equil length
-      lhist.lnucllh = 33.0 # ghost-lh length
-      lhist.beta = 110.0 * m.pi / 180.; # beta for the ctd
-      lhist.ctd_bond_length = 10.0
 
   # set masses
   molecule.atom_types.append(AtomType(1,param.nucl_mass))
@@ -767,6 +679,8 @@ def main():
   if (not os.path.exists(param.directory)):
     os.mkdir(param.directory)
 
+  if param.lh:
+      write_lhist_variables('in.var-lh',lhist)
   write_lammps_variables('in.variables',param,geom)
   molecule.write_dump("in.dump")
   #molecule.write_xyz("in.xyz")

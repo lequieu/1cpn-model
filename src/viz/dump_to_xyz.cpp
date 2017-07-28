@@ -1,10 +1,8 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 //#include "myrandom.h"
 #include <vector>
 #include <stdio.h>
-#include <vector>
 #include <stdlib.h>
 #include <fstream>
 #include "trajectory_iterator.h"
