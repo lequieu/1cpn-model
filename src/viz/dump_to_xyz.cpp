@@ -1,10 +1,8 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 //#include "myrandom.h"
 #include <vector>
 #include <stdio.h>
-#include <vector>
 #include <stdlib.h>
 #include <fstream>
 #include "trajectory_iterator.h"
@@ -43,7 +41,7 @@ int main(int argc, char**argv){
         sprintf(newdumpfile,"%s.xyz",argv[2]);
         sprintf(newpsffile,"%s.psf",argv[2]);
 
-    int natomtypes = 3;
+    int natomtypes = 5;
     double r[natomtypes],a[natomtypes],d[natomtypes], nrot[natomtypes],c[natomtypes];
     int n[natomtypes];
     //r = radius of `cylinder` of extra sites
@@ -84,11 +82,23 @@ int main(int argc, char**argv){
     c[2] = 0. * ls;
     nrot[2] = 0;
 
+    //linker histone haven't decided how to viz yet
+    for (size_t lh_iter=3; lh_iter<natomtypes; lh_iter++) {
+        r[lh_iter] = 0.00;
+        a[lh_iter] = 0;
+        n[lh_iter] = 0;
+        d[lh_iter] = 0;
+        c[lh_iter] = 0.;
+        nrot[lh_iter] = 0;
+    }
+
     //MASSES are hardcoded!
-    std::vector<double> masses(3+1);
+    std::vector<double> masses(5+1);
     masses[1] = 196666.0000;
     masses[2] = 1950.000000;  
     masses[3] = 19500.00000;  
+    masses[4] = 1466.000000;
+    masses[5] = 550.0000000;
 
 
 
@@ -220,6 +230,8 @@ int main(int argc, char**argv){
             if (type==0) sprintf(name,"N");
             else if (type==1) sprintf(name,"D");
             else if (type==2) sprintf(name,"G");
+            else if (type==3) sprintf(name,"GH");
+            else if (type==4) sprintf(name,"CTD");
 
             //print central atom
             x = atoms[k][0];
@@ -291,6 +303,8 @@ int main(int argc, char**argv){
             if (type==0) sprintf(name,"N1");
             else if (type==1) sprintf(name,"D1");
             else if (type==2) sprintf(name,"G1");
+            else if (type ==3) sprintf(name,"GH1");
+            else if (type ==4) sprintf(name,"CTD1");
 
             for (size_t j=0; j<n[type]; j++){
                 angle = anglepersite * j + stem_interp_angle; 
