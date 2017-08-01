@@ -1,7 +1,7 @@
 # lammps variables for anisotropic gauss potential 
 
 variable gauss_sig equal 2.0
-variable gauss_eps equal 2.0
+variable gauss_d0 equal 2.0
 variable gauss_r0 equal 45.0
 variable gauss_ktheta equal 4.0
 variable gauss_kphi equal 8.0
