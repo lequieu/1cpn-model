@@ -18,6 +18,7 @@ Contents:
 
    quickstart
    lammps
+   init
    vizualization
    ...
 
