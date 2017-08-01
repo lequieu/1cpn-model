@@ -154,7 +154,7 @@ int main(int argc, char**argv){
         parser.next_frame();
 
         for (size_t k=0;k<natom;k++){
-            type = atom_types[k] ;
+            type = atom_types[k]-1 ;
             if (type > natomtypes){
                 printf("ERROR: more than two atom types in dump! FIX ME!!!\n");
                 exit(1);
@@ -174,7 +174,7 @@ int main(int argc, char**argv){
         com[2] =0.0;
         totalmass = 0;
         for (size_t iatom=0; iatom < natom; iatom++){
-          type = atom_types[iatom];
+          type = atom_types[iatom]-1;
           com[0] += atoms[iatom][0]*masses[type];
           com[1] += atoms[iatom][1]*masses[type];
           com[2] += atoms[iatom][2]*masses[type];
@@ -225,7 +225,7 @@ int main(int argc, char**argv){
         char name[TWID];
         vector vin, vout;
         for(size_t k=0;k<natom;k++) {
-            type = atom_types[k];
+            type = atom_types[k]-1;
 
             if (type==0) sprintf(name,"N");
             else if (type==1) sprintf(name,"D");
@@ -257,7 +257,7 @@ int main(int argc, char**argv){
 
                 if (k >= 1) {
                     //write dna-dna bonds
-                    if ((atom_types[k] == 1) && (atom_types[k-1] == 1)){
+                    if ((atom_types[k] == 2) && (atom_types[k-1] == 2)){
                         bonds.push_back(Bond(iatom,iatom-1-n[1]));
                         ibond++;
                     }
@@ -376,7 +376,7 @@ int main(int argc, char**argv){
 
                     if (j==(n[type]-1)){// also if last site
                         
-                        if ((k != natom-3) && (type == 0) && (atom_types[k+2] == 1)){
+                        if ((k != natom-3) && (type == 0) && (atom_types[k+2] == 2)){
                             //int bondsite = iatom + 1; //bond to next dna, no ghost
                             int bondsite = iatom + 1 + 1 + n[2]; //bond to next dna, with ghost
                             if (bondsite < nnewatom){

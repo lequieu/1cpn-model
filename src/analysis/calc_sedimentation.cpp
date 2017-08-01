@@ -68,7 +68,7 @@ int main(int argc, char**argv){
         if (firstframe){
             nnucl = 0;
             for (size_t j=0;j<natoms;j++){
-              if (atom_types[j] == 0){
+              if (atom_types[j] == 1){ //is nucleosome
                 nucl_ids.push_back(j);
                 nnucl++;
               }

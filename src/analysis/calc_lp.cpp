@@ -115,8 +115,8 @@ int main(int argc, char**argv){
 
     //make sure all atoms are dna type
     for (size_t j = 0; j<natoms;j++){
-        if (atom_types[j] != 1){
-            std::cerr << "Error! All atom_types must be 1 to compute lp" <<std::endl;
+        if (atom_types[j] != 2){
+            std::cerr << "Error! All atom_types must be 2 (ie DNA) to compute lp" <<std::endl;
             exit(1);
         }
     }

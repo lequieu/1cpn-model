@@ -327,7 +327,7 @@ std::vector<int> TrajectoryIterator::get_type() {
         std::stringstream sin(line);
         sin >> index >> type;
         index -= 1;
-        atom_type[index] = type-1;
+        atom_type[index] = type;
     }
     return atom_type;
 };
@@ -360,7 +360,7 @@ void TrajectoryIterator::append_current_frame_to_file(std::string filename){
     quats = get_quat();
     types = get_type();
     for (int i = 0; i < numAtoms_; i++){
-        file << i+1 << " " << types[i]+1 << " ";
+        file << i+1 << " " << types[i] << " ";
         file << atoms[i][0] << " " << atoms[i][1] << " " << atoms[i][2] << " ";
         file << quats[i][0] << " " << quats[i][1] << " " << quats[i][2] << " " << quats[i][3];
         file << std::endl;

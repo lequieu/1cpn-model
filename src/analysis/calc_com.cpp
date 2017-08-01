@@ -84,7 +84,7 @@ int main(int argc, char**argv){
         com[2] = 0.0;
         totalmass = 0;
         for (size_t iatom=0; iatom < natoms; iatom++){
-          type = atom_types[iatom];
+          type = atom_types[iatom]-1;
           com[0] += atoms[iatom][0]*masses[type];
           com[1] += atoms[iatom][1]*masses[type];
           com[2] += atoms[iatom][2]*masses[type];

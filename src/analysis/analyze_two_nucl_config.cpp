@@ -62,7 +62,7 @@ int main(int argc, char**argv){
         if (firstframe){
           int nnucl = 0;
           for (size_t j=0; j<natoms; j++){
-            if (atom_types[j] == 0){
+            if (atom_types[j] == 1){
               if (nnucl == 0) nuclA = j;
               else if (nnucl == 1) nuclB = j;
               else{
