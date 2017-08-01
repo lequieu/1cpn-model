@@ -21,6 +21,10 @@ variable random equal 12345
 variable T equal 300
 variable salt equal 200 # in mM
 
+# simulation output
+variable freq equal 50000 
+variable freqhalf equal ${freq}/2
+
 # --------------------------------------------------------------------------
 # calculate Debye Length, assumes that T and salt are defined
 # --------------------------------------------------------------------------
@@ -126,7 +130,7 @@ variable myerot equal c_rot
 variable myetot equal etotal+c_rot
 
 # dump trajectory during corrent iteration:
-dump 1 all custom 10000 traj.dump id type x y z c_q[1] c_q[2] c_q[3] c_q[4]
+dump 1 all custom ${freq} traj.dump id type x y z c_q[1] c_q[2] c_q[3] c_q[4]
 
 if "${isRestart} == 1" then &
   "dump_modify 1 append yes" 
@@ -134,8 +138,8 @@ if "${isRestart} == 1" then &
 # thermo data:
 thermo_style custom step ebond eangle edihed ecoul epair pe ke c_rot etotal v_myetot temp
 
-thermo	     10000
+thermo	     ${freq}
 thermo_modify flush yes
 
-restart 10000 restart.0 restart.1
+restart ${freqhalf} restart.0 restart.1
 run	    1000000 
