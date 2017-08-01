@@ -220,19 +220,10 @@ def set_bonded_interactions(molecule,lhbool):
       molecule.bonds.append(Bond(16,a1,a2))
     if (ta1 == typemap['ctd']) and (ta2 == typemap['ctd']): #ctd - ctd
       molecule.bonds.append(Bond(15,a1,a2))
-    #if (ta1 == typemap['bead']) and (ta2 == typemap['bead']) and (ta3 == typemap['bead']) and (ta4 == typemap['nucl']):
-    #  molecule.bonds.append(Bond(5,a1,a4)) # morse bead-nucl
-    #  molecule.bonds.append(Bond(6,a1-3,a4)) # morse bead-nucl
-    #  #molecule.bonds.append(Bond(5,a2,a4)) # morse bead-nucl
-    #if (ta1 == typemap['nucl']) and (ta2 == typemap['dyad']) and (ta3 == typemap['bead']) and (ta4 == typemap['bead']) and (ta5 == typemap['bead']):
-    #  molecule.bonds.append(Bond(5,a1,a5)) # morse bead-nucl
-    #  molecule.bonds.append(Bond(6,a1,a5+3)) # morse bead-nucl
-    #  #molecule.bonds.append(Bond(5,a1,a5)) # morse bead-nucl
 
     # angles
     if (ta1 == typemap['bead']) and (ta2 == typemap['bead']):
       molecule.angles.append(Angle(2,a1,a2,a2)) #dna twist
-      #molecule.angles.append(Angle(13,a1,a2,a2)) #dna twist
 
     if (ta1 == typemap['bead']) and (ta2 == typemap['nucl']):
       molecule.angles.append(Angle(4,a1,a2,a2)) #orient bead and nucl
