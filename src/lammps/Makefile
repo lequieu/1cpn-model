@@ -20,6 +20,7 @@ files = angle_orient.cpp \
         pair_zewdie.h
 
 lammps_files := $(addprefix $(LAMMPS_SRC)/,$(files))
+local_files := $(addprefix $(PWD)/,$(files))
 
 
 # link all .cpp .h files
@@ -31,7 +32,8 @@ lammps_files := $(addprefix $(LAMMPS_SRC)/,$(files))
 
 # link only some files
 link: 
-	ln -sfr $(files) -t ${LAMMPS_SRC}
+	#ln -sfr $(files) -t ${LAMMPS_SRC} # Older ln doesnt permit the -r flag
+	ln -sf $(local_files) -t ${LAMMPS_SRC}
 
 unlink:
 	rm ${lammps_files}
