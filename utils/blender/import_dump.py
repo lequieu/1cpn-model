@@ -837,6 +837,7 @@ def draw_nucl(loc,quat):
     obs.append(ob)    
  
     ob = draw_coordframe(loc,quat)
+    #draw big coord frame
     #ob = draw_coordframe(loc,quat, length=(50,75,75),dcone=15,rcyl=5)
     obs.append(ob)    
 
@@ -1159,8 +1160,8 @@ set_world_bg(COLORS['worldbg'])
 setup_scene()
 
 
-#draw_nucl((0,0,0),(0,1,0,0))
+#draw_nucl((0,0,0),(1,0,0,0))
+#draw_coordframe((0,0,0),(1,0,0,0),length=(50,75,75))
 #draw_nucl_dna((0,0,0),(0,1,0,0),nucl_bp_unwrap=11)
 #draw_dna_bead((0,0,0),(0,1,0,0))
-#draw_coordframe((0,0,10),(1,0,0,0))
 #draw_arrow()
