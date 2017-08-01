@@ -5,6 +5,8 @@ import sys
 from molecule import *
 from vect_quat_util import *
 
+# current lh parameters come from Luque et al (2014)
+
 class LinkerHistone(object):
     __slots__ = ('ctd_mass', 'gh_mass', 'num_in_gh', 'linit',
                 'lequil', 'beta', 'salt_scale', 'lnucllh',
