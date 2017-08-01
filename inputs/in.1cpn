@@ -41,42 +41,10 @@ variable ldebye_cut equal "8.0/v_ldebye_inv" # cutoff at 8 ldebye
 
 dielectric ${esol}
 
-#special_bonds lj 1 1 1
+# Read parameters
 include in.variables
 include in.var-zewdie
 include in.var-gauss
-
-# Specify the different interaction styles
-bond_style	     hybrid harmonic gauss
-angle_style	     hybrid cosine wlctwist wlctwistend harmonic orient orient/cosine
-
-# Read in the configuration
-if "${isRestart} == 0" then &
-  "read_data in.lammps" &
-else &
-  "read_restart restart.*"
-
-
-#GB param:                    gamma upsilon  mu  cutoff    
-# zewdie parameters:          e000   ecc2   e220   e222   e224   
-#                             s000   scc2    s220    s222    s224
-#pair_style hybrid  zewdie     1.9152 2.7322 1.2633 2.3440 1.0101 &
-#                              1.6957 -0.7641 -0.1480 -0.2582 0.5112 
-#pair_style hybrid zewdie      0.1286  -0.431 0.9156 1.7216 4.7499 &
-#                              0.9058 -0.458 1.7489 -1.330 1.0399 
-
-pair_style hybrid zewdie     ${pe000}   ${pecc2}   ${pe220}  ${pe222} ${pe224} &
-                             ${ps000}   ${pscc2}   ${ps220}  ${ps222} ${ps224} &
-							 coul/debye ${ldebye_inv} ${ldebye_cut} &
-                  gauss/aniso ${gauss_rcut}
-
-
-## set parameters:
-#set 	     type 1 mass  239566     # Histone = 107616 g/mol, basepairs = 147+28*2 = 203
-#set 	     type 2 mass  1950       # Mass = MW of bp (650g/mol)*3bp
-#set 	     type 1 shape 55 110 110 # set in conf generator?
-#set 	     type 2 shape 20 20 20   # set in conf generator?
-
 
 #parameters that must be determined
 variable kalpha equal 10
@@ -86,47 +54,56 @@ variable ktwistnucldna equal 10
 variable ktheta equal 3.23/2.0 # From fitting Srot for 601 sequence: x0 = -1.318270, k=3.234, 
                                        # divide by 2 since applied to entering and exiting dna
 
+# Read in the configuration
+if "${isRestart} == 0" then &
+  "read_data in.lammps" &
+else &
+  "read_restart restart.*"
+
+# --------------------------------------------------------------------------
+# Define Model interaction styles
+# --------------------------------------------------------------------------
+bond_style	     hybrid harmonic 
+angle_style	     hybrid cosine wlctwist harmonic orient orient/cosine
+
+# zewdie parameters:          e000   ecc2   e220   e222   e224   
+#                             s000   scc2    s220    s222    s224
+pair_style hybrid zewdie     ${pe000}   ${pecc2}   ${pe220}  ${pe222} ${pe224} &
+                             ${ps000}   ${pscc2}   ${ps220}  ${ps222} ${ps224} &
+                  coul/debye ${ldebye_inv} ${ldebye_cut} &
+                  gauss/aniso ${gauss_rcut}
+
 #Bond Coeffs
-bond_coeff   1   harmonic ${kbondnucl}     ${lc}          # bond between end bead and nucl
-bond_coeff   2   harmonic ${kbond}     ${lb}          # bead-bead
-bond_coeff   3   harmonic ${kbondnucl} ${la}           # bead-bead stem
+bond_coeff   1   harmonic ${kbondnucl} ${lc}       # bond between end bead and nucl
+bond_coeff   2   harmonic ${kbond}     ${lb}       # bead-bead
+bond_coeff   3   harmonic ${kbondnucl} ${la}       # bead-bead stem
 bond_coeff   4   harmonic ${kbondnucl} ${le}       # bead-centerghost 
 bond_coeff   5   harmonic ${kbondnucl} ${ld}       # nucl-centerghost 
 
 #Angle Coeffs
-# kalignment is made up
-# other values are from Stehr SI, check that they're reasonable
-angle_coeff	1	cosine		  ${kangle}                      # bead-bead 
-angle_coeff 2   wlctwist      ${kalign} ${ktwist}     ${omega0}  # bead-bead twist
-#angle_coeff	2	orient  	  angle_f   0.0 0.0 ${ktwist} 0.0 0.0 ${omega0}  # bead-bead twist f-f
-#angle_coeff	13  orient  	  angle_u   ${kalign} 0.0 0.0 0.0 0.0 0.0         # bead-bead twist u-u
-#angle_coeff	3	wlctwistend	${kalign} ${ktwist}     ${omega0}  # bead-bead twist (FOR SOME REASON THIS WAS BLOWING UP)
+angle_coeff	1	cosine		  ${kangle}                                              # bead-bead 
+angle_coeff 2   wlctwist      ${kalign} ${ktwist}     ${omega0}                      # bead-bead twist
 angle_coeff	3	orient        angle_u   ${kalign} ${kalign} ${kalign} 0.0 0.0 0.0    # bead-bead twist
-angle_coeff 4   orient        angle_f   0.0 ${kzeta} 0.0 ${zeta} ${zeta} 0.0    # bead(entry/exit)-nucl orient f
-angle_coeff 11  orient        angle_f   ${kzeta} 0.0 0.0 ${zeta} ${zeta} 0.0    # bead(entry/exit)-nucl orient f
-angle_coeff 10  orient/cosine angle_f   0.0 0.0 ${ktheta} 0.0 0.0 ${theta}    # bead(entry/exit)-nucl orient f
-angle_coeff	5	orient        angle_u   ${korient} ${korient} ${korient} 0.0 0.0 0.0    # nucl ghost orient u
-angle_coeff	12  orient        angle_f   ${korient} ${korient} ${korient} 90.0 90.0 0.0    # nucl ghost orient u
-angle_coeff	6	harmonic	  ${kalpha} ${alpha}      # dna-nucl bend angle
-angle_coeff	7	orient        angle_u   0.0 0.0 ${kalpha} 0.0 0.0 ${eta}      # nucl dna align u
-angle_coeff	8	orient        angle_u   0.0 0.0 ${kalpha} 0.0 0.0 ${mu}   # nucl dna align u
-angle_coeff	9	orient        angle_f   0.0 0.0 ${ktwistnucldna} 0.0 0.0 0.0  # bead entry/exit orient f
+angle_coeff 4   orient        angle_f   0.0 ${kzeta} 0.0 ${zeta} ${zeta} 0.0         # bead(entry/exit)-nucl orient f
+angle_coeff 11  orient        angle_f   ${kzeta} 0.0 0.0 ${zeta} ${zeta} 0.0         # bead(entry/exit)-nucl orient f
+angle_coeff 10  orient/cosine angle_f   0.0 0.0 ${ktheta} 0.0 0.0 ${theta}           # bead(entry/exit)-nucl orient f
+angle_coeff	5	orient        angle_u   ${korient} ${korient} ${korient} 0.0 0.0 0.0 # nucl ghost orient u
+angle_coeff	12  orient        angle_f   ${korient} ${korient} ${korient} 90.0 90.0 0.0 # nucl ghost orient u
+angle_coeff	6	harmonic	  ${kalpha} ${alpha}                                       # dna-nucl bend angle
+angle_coeff	7	orient        angle_u   0.0 0.0 ${kalpha} 0.0 0.0 ${eta}               # nucl dna align u
+angle_coeff	8	orient        angle_u   0.0 0.0 ${kalpha} 0.0 0.0 ${mu}                # nucl dna align u
+angle_coeff	9	orient        angle_f   0.0 0.0 ${ktwistnucldna} 0.0 0.0 0.0           # bead entry/exit orient f
 
-
-
-
-## potential parameters:
-
+#Pair Coeffs
 # zewdie     i j style  eps    sig    cutoff
-pair_coeff   1 1 zewdie ${pe0} ${ps0} 300
-pair_coeff   1 2 zewdie 0.1  30.0  80
-# gayberne   i j style       eps   sig  eps:ia  ib  ic  ja  jb  jc  (cutoff)
-#pair_coeff   1 1 gayberne    1.0   55.0     1   0.3 0.3 0   0   0
-#pair_coeff   1 2 gayberne    1.0   20.0     1   0.3 0.3 1   1   1
+pair_coeff   1 1 zewdie ${pe0} ${ps0} ${zewdie_rcut}
+pair_coeff   1 2 zewdie 0.01  30.0  80
 pair_coeff   2 2 coul/debye
 pair_coeff   1 3 none
+# gauss/aniso i j style      gauss width  gauss depth  gauss_pos   gauss_theta0    gauss_phi0    gauss_Ktheta    gauss_Kphi
 pair_coeff   2 3 gauss/aniso ${gauss_sig} ${gauss_eps} ${gauss_r0} ${gauss_theta0} ${gauss_phi0} ${gauss_ktheta} ${gauss_kphi}
 pair_coeff   3 3 none
+# --------------------------------------------------------------------------
 
 
 ################################################################
@@ -161,5 +138,4 @@ thermo	     10000
 thermo_modify flush yes
 
 restart 10000 restart.0 restart.1
-#run	    1000000
-run	    1000000 upto
+run	    1000000 
