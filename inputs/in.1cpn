@@ -47,8 +47,8 @@ dielectric ${esol}
 
 # Read parameters
 include in.variables
-include in.var-zewdie
-include in.var-gauss
+include in.fitzewdie
+include in.gauss
 
 #parameters that must be determined
 variable kalpha equal 10
