@@ -43,8 +43,8 @@ dielectric ${esol}
 
 #special_bonds lj 1 1 1
 include in.variables
-include in.var-zewdie
-include in.var-gauss
+include in.fitzewdie
+include in.gauss
 
 # Specify the different interaction styles
 bond_style	     hybrid harmonic gauss
