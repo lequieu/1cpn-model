@@ -17,9 +17,12 @@ atom_style  hybrid ellipsoid full
 # Random number seed for orientation
 variable random equal 12345
 
+# Is there a linker histone
+variable lh equal 0
+
 # Simulation Temperature
 variable T equal 300
-variable salt equal 200 # in mM
+variable salt equal 150 # in mM
 
 # simulation output
 variable freq equal 50000 
@@ -69,15 +72,24 @@ else &
 # --------------------------------------------------------------------------
 # Define Model interaction styles
 # --------------------------------------------------------------------------
-bond_style	     hybrid harmonic 
+bond_style	     hybrid harmonic
 angle_style	     hybrid cosine wlctwist harmonic orient orient/cosine
 
 # zewdie parameters:          e000   ecc2   e220   e222   e224   
 #                             s000   scc2    s220    s222    s224
-pair_style hybrid zewdie     ${pe000}   ${pecc2}   ${pe220}  ${pe222} ${pe224} &
+if "${lh} == 0" then &
+"pair_style hybrid zewdie     ${pe000}   ${pecc2}   ${pe220}  ${pe222} ${pe224} &
                              ${ps000}   ${pscc2}   ${ps220}  ${ps222} ${ps224} &
                   coul/debye ${ldebye_inv} ${ldebye_cut} &
-                  gauss/aniso ${gauss_rcut}
+                  gauss/aniso ${gauss_rcut}" &
+else &
+"pair_style hybrid zewdie     ${pe000}   ${pecc2}   ${pe220}  ${pe222} ${pe224} &
+                             ${ps000}   ${pscc2}   ${ps220}  ${ps222} ${ps224} &
+                  coul/debye ${ldebye_inv} ${ldebye_cut} &
+                  gauss/aniso ${gauss_rcut} &
+                  lj/cut       30 &
+                  lj/cut/coul/debye ${ldebye_inv} 50 ${ldebye_cut}"
+
 
 #Bond Coeffs
 bond_coeff   1   harmonic ${kbondnucl} ${lc}       # bond between end bead and nucl
@@ -111,6 +123,11 @@ pair_coeff   2 3 gauss/aniso ${gauss_sig} ${gauss_d0} ${gauss_r0} ${gauss_theta0
 pair_coeff   3 3 none
 # --------------------------------------------------------------------------
 
+
+# simple lammps logic to only include in.lh if
+if "${lh} == 0" then "jump SELF skipinclude"
+include in.lh
+label skipinclude
 
 ################################################################
 
