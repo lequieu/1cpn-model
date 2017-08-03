@@ -448,8 +448,7 @@ def main():
   param.nnucleosomes = args.nnucl
   param.nrl = args.nrl
   param.lh = args.lh # linker histone boolean
-  if param.lh: # only use salt if linker histone is present
-    param.salt = args.salt;
+  param.salt = args.salt;
 
   if args.nrlends == None:
     param.nrlends = args.nrl
