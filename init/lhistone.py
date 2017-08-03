@@ -30,7 +30,7 @@ class LinkerHistone(object):
       # the charges are taken from the sequence of the H1.4 tails
       self.ctd_charges = [0,2,2,3,0,4,0,2,2,4,0,2,3,2,2,2,2,2,2,2,2,3]; # array of H1.4 ctd CG charges
       # set the rest of the parameters
-      self.kbondgh = 30.0 # bond strength
+      self.kbondgh = 100.0 # bond strength
       self.kghctd = 1.0   # bond between gh and ctd strength
       self.kbendgh = 50.0 # angle strength
       self.ktorsgh = 20.0 # dihedral strength
