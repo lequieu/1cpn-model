@@ -31,7 +31,7 @@ def write_args(args,param,geom,fnme):
 
    f.write('\n# All Arguements\n')
    f.write("%s\n" %args)
-  
+
    f.write("\n# All paramaters and geometry values (just in case)\n")
    for name in param.__slots__:
       value = eval("param.%s" % name)
@@ -127,9 +127,10 @@ def set_bonded_interactions(molecule,lhbool):
   # bond_type 6-14 globular head interactions
   # bond_type 15  ctd-ctd
   # bond_type 16  gh-ctd
-  # bond_type 17  gh-nucl
+  # bond_type 17  gh-dyad
+  # bond_type 18  gh-nucl
   if lhbool:
-    molecule.nbond_type = 17
+    molecule.nbond_type = 18
   else:
     molecule.nbond_type = 5
 
@@ -165,6 +166,7 @@ def set_bonded_interactions(molecule,lhbool):
   n = len(molecule.ellipsoids)
   # this allows us to bond the nucleosome to the LH
   nucl_array = []
+  dyad_array = []
   inucl = 0
   for a1 in range(n-1):
     ta2 = ta3 = ta4 = ta5 = ta6 = ta7 = -1
@@ -191,8 +193,9 @@ def set_bonded_interactions(molecule,lhbool):
 
     # bonds
     # note: entire stem must exist. i.e. there must be an entering and exiting DNA, and two dyad sites
-    if (ta1 == typemap['dyad']):
+    if (ta1 == typemap['nucl']):
         nucl_array.append(a1)
+        dyad_array.append(a2)
     if (ta1 == typemap['bead']) and (ta2 == typemap['bead']):
       molecule.bonds.append(Bond(2,a1,a2)) #dna-dna bond
     if (ta1 == typemap['bead']) and (ta2 == typemap['nucl']) and (ta3 == typemap['dyad']) and (ta4 == typemap['bead']):
@@ -212,9 +215,14 @@ def set_bonded_interactions(molecule,lhbool):
       molecule.bonds.append(Bond(12,a2,a7))
       molecule.bonds.append(Bond(13,a3,a6))
       molecule.bonds.append(Bond(14,a4,a5))
-      molecule.bonds.append(Bond(17,nucl_array[inucl],a2))
-      molecule.bonds.append(Bond(17,nucl_array[inucl],a4))
-      molecule.bonds.append(Bond(17,nucl_array[inucl],a5))
+    # three bonds for both the dyad and nucl keep the LH bound to the dyad position
+    # any removed and you get off-dyad binding
+      molecule.bonds.append(Bond(17,dyad_array[inucl],a2))
+      molecule.bonds.append(Bond(17,dyad_array[inucl],a4))
+      molecule.bonds.append(Bond(17,dyad_array[inucl],a5))
+      molecule.bonds.append(Bond(18,nucl_array[inucl],a2))
+      molecule.bonds.append(Bond(18,nucl_array[inucl],a4))
+      molecule.bonds.append(Bond(18,nucl_array[inucl],a5))
       inucl = inucl + 1
     if (ta1 == typemap['gh']) and (ta2 == typemap['ctd']): #gh - ctd
       molecule.bonds.append(Bond(16,a1,a2))
@@ -345,7 +353,7 @@ def calculate_nrl_dna_unwrap(param):
   nrltmp = l - param.nucl_bp_unwrap + param.dna_in_nucl
   ltmp = l - param.nucl_bp_unwrap
   if modulo != 0:
-    print "Note: NRL of ends spefied (%d) was rounded to %d in order to be consistent with param.nucl_bp_unwrap (%d)  obtained from NRL (%d)" % ( param.nrlends, nrltmp, param.nucl_bp_unwrap, param.nrl)
+    print "Note: NRL of ends specified (%d) was rounded to %d in order to be consistent with param.nucl_bp_unwrap (%d)  obtained from NRL (%d)" % ( param.nrlends, nrltmp, param.nucl_bp_unwrap, param.nrl)
   param.nrlends = nrltmp
   param.dna_linker_length_ends = ltmp
 
@@ -461,7 +469,7 @@ def main():
 
   # calculate some parameters
   calculate_nrl_dna_unwrap(param)
- 
+
   # If there are zero nucleosomes, just draw DNA length of nrl
   if param.nnucleosomes == 0:
     param.dna_linker_length_ends = param.nrl
@@ -571,7 +579,7 @@ def main():
       if ibead == 0:
         pos = bead_pos0
         quat = bead_quat0
-    
+
         mytype = typemap['bead']
         if (inuc != 0):
           molid = inuc #first bead is part of prev nucl molecule
