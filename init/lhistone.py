@@ -78,7 +78,7 @@ class LinkerHistone(object):
 def write_lhist_variables(fnme,lhist,salt):
   fnew = open (fnme,"w")
   fnew.write("#Error message to make sure lammps specified salt is valid\n")
-  fnew.write("if \"${salt} != %f\" then \"print Error! Linker Histone charges are only valid at %.2fmM. Generate a new in.lammps if you want to simulate at a different salt!\" then quit\n\n" % (salt,salt))
+  fnew.write("if \"${salt} != %f\" then \"print 'Error! Linker Histone charges are only valid at %.2fmM. Generate a new in.lammps if you want to simulate at a different salt!'\" quit\n\n" % (salt,salt))
   fnew.write( "# Defining linker histone variables for LAMMPS\n")
   fnew.write( "variable gha equal %f\n" % lhist.bonds[0])
   fnew.write( "variable ghb equal %f\n" % lhist.bonds[1])
