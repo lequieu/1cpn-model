@@ -405,7 +405,7 @@ class Parameters(object):
                 'nucl_mass',
                 'dyad_mass',
                 'basepair_per_bead',
-                'nrl','nrlends','lh',
+                'nrl','nrlends','lh','salt',
                 'lnucldna',
                 'lengthscale',
                 'dna_linker_length','dna_linker_length_ends',
@@ -432,7 +432,9 @@ def main():
   parser.add_argument('-nrl','--nrl',default=187, type=int, help='Nucleosome repeat length')
   parser.add_argument('-nrlends','--nrlends',type=int, help='Nucleosome repeat length of ends')
   parser.add_argument('-n','--nnucl',default=1,type=int, help='Number of nucleosomes')
-  parser.add_argument('-lh','--linkerhistone',default=False,type=bool,help='turn on linker histones')
+  parser.add_argument('-lh','--linkerhistone',dest='lh',action='store_true',help='turn on linker histones')
+  parser.set_defaults(lhbool=False)
+  parser.add_argument('-salt','--salt',default=150,type=float,help='salt to use for linker histone')
   args = parser.parse_args()
 
   # structures to store data
@@ -445,7 +447,9 @@ def main():
   geom.alpha = args.stemangle * m.pi / 180. # alpha that config is initialized to
   param.nnucleosomes = args.nnucl
   param.nrl = args.nrl
-  param.lh = args.linkerhistone # linker histone boolean
+  param.lh = args.lh # linker histone boolean
+  if param.lh: # only use salt if linker histone is present
+    param.salt = args.salt;
 
   if args.nrlends == None:
     param.nrlends = args.nrl
@@ -646,7 +650,7 @@ def main():
     os.mkdir(param.directory)
 
   if param.lh:
-      write_lhist_variables('in.var-lh',lhist)
+      write_lhist_variables('in.var-lh',lhist,param.salt)
   write_lammps_variables('in.variables',param,geom)
   molecule.write_dump("in.dump")
   #molecule.write_xyz("in.xyz")
