@@ -1,6 +1,6 @@
 
 # for the linker histone, salt must stay at 150 mM (charges from DiSCO)
-if "${salt} != 150" then "print salt must stay at 150mM for the linker histone" then quit
+#if "${salt} != 150" then "print salt must stay at 150mM for the linker histone" then quit
 
 # calculate the excluded volume strength (given in kT in the SI of the paper)
 variable KB_kcal equal 1.9872041E-4  #kcal/(mol*K)
