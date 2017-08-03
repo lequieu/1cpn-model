@@ -261,6 +261,11 @@ int main(int argc, char**argv){
                         bonds.push_back(Bond(iatom,iatom-1-n[1]));
                         ibond++;
                     }
+                    //write lh-lh bonds
+                    if ((atom_types[k] >= 3) && (atom_types[k-1] >= 3)){
+                        bonds.push_back(Bond(iatom,iatom-1));
+                        ibond++;
+                    }
                 }
             }
             iatom ++;
