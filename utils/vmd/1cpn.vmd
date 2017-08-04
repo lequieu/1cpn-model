@@ -46,7 +46,7 @@ mol smoothrep 0 4 5
 
 mol representation licorice 5.0
 mol addrep 0
-mol modselect 5 0 "all"
+mol modselect 5 0 "name CTD GH"
 mol modcolor 5 0 colorID 10
 mol smoothrep 0 5 5 
 
