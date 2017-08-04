@@ -84,11 +84,11 @@ int main(int argc, char**argv){
 
     //linker histone haven't decided how to viz yet
     for (size_t lh_iter=3; lh_iter<natomtypes; lh_iter++) {
-        r[lh_iter] = 0.00;
+        r[lh_iter] = 0.06 * ls;
         a[lh_iter] = 0;
         n[lh_iter] = 0;
-        d[lh_iter] = 0;
-        c[lh_iter] = 0.;
+        d[lh_iter] = 0 * ls;
+        c[lh_iter] = 0. * ls;
         nrot[lh_iter] = 0;
     }
 
@@ -262,7 +262,7 @@ int main(int argc, char**argv){
                         ibond++;
                     }
                     //write lh-lh bonds
-                    if ((atom_types[k] >= 3) && (atom_types[k-1] >= 3)){
+                    if (((atom_types[k] >= 4) && (atom_types[k-1] >= 4)) && !((atom_types[k] == 4) && (atom_types[k-1] == 5))) {
                         bonds.push_back(Bond(iatom,iatom-1));
                         ibond++;
                     }

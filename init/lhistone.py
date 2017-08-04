@@ -15,7 +15,7 @@ class LinkerHistone(object):
                 'kbondgh','kghctd','kbendgh','ktorsgh','ghupsi',
                 'gh_data','ctd_charges')
 
-    def __init__(self):
+    def __init__(self,d):
       self.bonds = []
       self.angles = []
       self.dihedrals = []
@@ -46,7 +46,7 @@ class LinkerHistone(object):
       self.linit = 7.0; # bond init length
       self.lequil = 15.0 # bond equil length
       self.ldyadlh = 33.0 # dyad-lh length
-      self.lnucllh = self.ldyadlh + 35.0 # nucl-lh length
+      self.lnucllh = self.ldyadlh + d # nucl-lh length
       self.beta = 110.0; # beta for the ctd
       self.ctd_bond_length = 16.50 # gh ctd equil length (setting it to excluded volume distance)
 

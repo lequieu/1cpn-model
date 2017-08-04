@@ -187,9 +187,9 @@ def set_bonded_interactions(molecule,lhbool):
     if (a5 < n-1):
       a6 = a5+1
       ta6 = molecule.ellipsoids[a6].mytype
-    if (a6 < n-1):
-      a7 = a6+1
-      ta7 = molecule.ellipsoids[a7].mytype
+    #if (a6 < n-1):
+    #  a7 = a6+1
+    #  ta7 = molecule.ellipsoids[a7].mytype
 
     # bonds
     # note: entire stem must exist. i.e. there must be an entering and exiting DNA, and two dyad sites
@@ -205,24 +205,24 @@ def set_bonded_interactions(molecule,lhbool):
       molecule.bonds.append(Bond(4,a3,a1)) #bead-centerdyad, length 0.5e
       molecule.bonds.append(Bond(4,a3,a4)) #bead-centerdyad, length 0.5e
       molecule.bonds.append(Bond(5,a2,a3)) #bead-centerdyad, length 0.5e
-    if ((ta1 == typemap['ctd']) or (ta1 == typemap['dyad']) or (ta1 == typemap['bead'])) and (ta2 == typemap['gh']): # all of the below interactions are gh-gh
-      molecule.bonds.append(Bond(6,a2,a4))
-      molecule.bonds.append(Bond(7,a2,a5))
-      molecule.bonds.append(Bond(8,a3,a4))
-      molecule.bonds.append(Bond(9,a3,a7))
-      molecule.bonds.append(Bond(10,a5,a6))
-      molecule.bonds.append(Bond(11,a6,a7))
-      molecule.bonds.append(Bond(12,a2,a7))
-      molecule.bonds.append(Bond(13,a3,a6))
-      molecule.bonds.append(Bond(14,a4,a5))
-    # three bonds for both the dyad and nucl keep the LH bound to the dyad position
-    # any removed and you get off-dyad binding
-      molecule.bonds.append(Bond(17,dyad_array[inucl],a2))
-      molecule.bonds.append(Bond(17,dyad_array[inucl],a4))
-      molecule.bonds.append(Bond(17,dyad_array[inucl],a5))
-      molecule.bonds.append(Bond(18,nucl_array[inucl],a2))
-      molecule.bonds.append(Bond(18,nucl_array[inucl],a4))
-      molecule.bonds.append(Bond(18,nucl_array[inucl],a5))
+    if ((ta1 == typemap['gh']) and (ta6 == typemap['gh'])): # all of the below interactions are gh-gh
+      molecule.bonds.append(Bond(6,a1,a3))
+      molecule.bonds.append(Bond(7,a1,a4))
+      molecule.bonds.append(Bond(8,a2,a3))
+      molecule.bonds.append(Bond(9,a2,a6))
+      molecule.bonds.append(Bond(10,a4,a5))
+      molecule.bonds.append(Bond(11,a5,a6))
+      molecule.bonds.append(Bond(12,a1,a6))
+      molecule.bonds.append(Bond(13,a2,a5))
+      molecule.bonds.append(Bond(14,a3,a4))
+      # three bonds for both the dyad and nucl keep the LH bound to the dyad position
+      # any removed and you get off-dyad binding
+      molecule.bonds.append(Bond(17,dyad_array[inucl],a1)) # dyad-GH1
+      molecule.bonds.append(Bond(17,dyad_array[inucl],a3)) # dyad-GH3
+      molecule.bonds.append(Bond(17,dyad_array[inucl],a4)) # dyad-GH4
+      molecule.bonds.append(Bond(18,nucl_array[inucl],a1)) # nucl-GH1
+      molecule.bonds.append(Bond(18,nucl_array[inucl],a3)) # nucl-GH3
+      molecule.bonds.append(Bond(18,nucl_array[inucl],a4)) # nucl-GH4
       inucl = inucl + 1
     if (ta1 == typemap['gh']) and (ta2 == typemap['ctd']): #gh - ctd
       molecule.bonds.append(Bond(16,a1,a2))
@@ -261,21 +261,21 @@ def set_bonded_interactions(molecule,lhbool):
       molecule.angles.append(Angle(9,a1,a4,a4)) #orient enter exit dna with orient f
 
     #These are the angles for the globular head of the linker histone
-    if ((ta1 == typemap['ctd']) or (ta1 == typemap['dyad']) or (ta1 == typemap['bead'])) and (ta2 == typemap['gh']): # all of the below interactions are gh-gh
-      molecule.angles.append(Angle(13,a4,a2,a5)) #gh angle 1
-      molecule.angles.append(Angle(14,a2,a5,a6)) #gh angle 2
-      molecule.angles.append(Angle(15,a4,a3,a7)) #gh angle 3
-      molecule.angles.append(Angle(16,a3,a6,a7)) #gh angle 4
-      molecule.angles.append(Angle(17,a2,a7,a6)) #gh angle 5
-      molecule.angles.append(Angle(18,a3,a4,a5)) #gh angle 6
+    if ((ta1 == typemap['gh']) and (ta6 == typemap['gh'])):
+      molecule.angles.append(Angle(13,a3,a1,a4)) #gh angle 1
+      molecule.angles.append(Angle(14,a1,a4,a5)) #gh angle 2
+      molecule.angles.append(Angle(15,a3,a2,a6)) #gh angle 3
+      molecule.angles.append(Angle(16,a2,a5,a6)) #gh angle 4
+      molecule.angles.append(Angle(17,a1,a6,a5)) #gh angle 5
+      molecule.angles.append(Angle(18,a2,a3,a4)) #gh angle 6
 
     if (ta1 == typemap['ctd']) and (ta2 == typemap['ctd']) and (ta3 == typemap['ctd']):
       molecule.angles.append(Angle(19,a1,a2,a3))
 
     #dihedrals for the linker histone
-    if ((ta1 == typemap['ctd']) or (ta1 == typemap['dyad']) or (ta1 == typemap['bead'])) and (ta2 == typemap['gh']): # all of the below interactions are gh-gh
-      molecule.dihedrals.append(Dihedral(1,a4,a2,a5,a6)) #gh dihedral 1
-      molecule.dihedrals.append(Dihedral(2,a4,a3,a7,a6)) #gh dihedral 2
+    if ((ta1 == typemap['gh']) and (ta6 == typemap['gh'])):
+      molecule.dihedrals.append(Dihedral(1,a3,a1,a4,a5)) #gh dihedral 1
+      molecule.dihedrals.append(Dihedral(2,a3,a2,a6,a5)) #gh dihedral 2
     # taking away the third dihedral
     #if (ta4 == typemap['gh']) and (ta5 == typemap['ctd']):
     #  molecule.dihedrals.append(Dihedral(3,a1,a4,a5,a6)) #gh-ctd dihedral
@@ -465,7 +465,7 @@ def main():
     param.nrlends = args.nrlends
 
   if param.lh:
-    lhist = LinkerHistone()
+    lhist = LinkerHistone(geom.d)
 
   # calculate some parameters
   calculate_nrl_dna_unwrap(param)
