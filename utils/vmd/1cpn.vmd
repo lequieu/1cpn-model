@@ -29,20 +29,26 @@ mol smoothrep 0 2 5
 
 mol representation vdw 3
 mol addrep 0
-mol modselect 3 0 "not name N D N1 D1"
+mol modselect 3 0 "not name N D N1 D1 CTD GH"
 mol smoothrep 0 3 5
 
-mol representation vdw 4.0
+mol representation vdw 6.0
 mol addrep 0
 mol modselect 4 0 "name GH"
 mol modcolor 4 0 colorID 12
 mol smoothrep 0 4 5
 
-mol representation vdw 3
+#mol representation vdw 5.0
+#mol addrep 0
+#mol modselect 5 0 "name CTD"
+#mol modcolor 5 0 colorID 10
+#mol smoothrep 0 5 5
+
+mol representation licorice 5.0
 mol addrep 0
-mol modselect 5 0 "name CTD"
+mol modselect 5 0 "name CTD GH"
 mol modcolor 5 0 colorID 10
-mol smoothrep 0 5 5
+mol smoothrep 0 5 5 
 
 #mol representation vdw 0.1
 #mol addrep 0

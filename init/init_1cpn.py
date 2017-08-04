@@ -31,7 +31,7 @@ def write_args(args,param,geom,fnme):
 
    f.write('\n# All Arguements\n')
    f.write("%s\n" %args)
-  
+
    f.write("\n# All paramaters and geometry values (just in case)\n")
    for name in param.__slots__:
       value = eval("param.%s" % name)
@@ -127,9 +127,10 @@ def set_bonded_interactions(molecule,lhbool):
   # bond_type 6-14 globular head interactions
   # bond_type 15  ctd-ctd
   # bond_type 16  gh-ctd
-  # bond_type 17  gh-nucl
+  # bond_type 17  gh-dyad
+  # bond_type 18  gh-nucl
   if lhbool:
-    molecule.nbond_type = 17
+    molecule.nbond_type = 18
   else:
     molecule.nbond_type = 5
 
@@ -165,6 +166,7 @@ def set_bonded_interactions(molecule,lhbool):
   n = len(molecule.ellipsoids)
   # this allows us to bond the nucleosome to the LH
   nucl_array = []
+  dyad_array = []
   inucl = 0
   for a1 in range(n-1):
     ta2 = ta3 = ta4 = ta5 = ta6 = ta7 = -1
@@ -185,14 +187,15 @@ def set_bonded_interactions(molecule,lhbool):
     if (a5 < n-1):
       a6 = a5+1
       ta6 = molecule.ellipsoids[a6].mytype
-    if (a6 < n-1):
-      a7 = a6+1
-      ta7 = molecule.ellipsoids[a7].mytype
+    #if (a6 < n-1):
+    #  a7 = a6+1
+    #  ta7 = molecule.ellipsoids[a7].mytype
 
     # bonds
     # note: entire stem must exist. i.e. there must be an entering and exiting DNA, and two dyad sites
-    if (ta1 == typemap['dyad']):
+    if (ta1 == typemap['nucl']):
         nucl_array.append(a1)
+        dyad_array.append(a2)
     if (ta1 == typemap['bead']) and (ta2 == typemap['bead']):
       molecule.bonds.append(Bond(2,a1,a2)) #dna-dna bond
     if (ta1 == typemap['bead']) and (ta2 == typemap['nucl']) and (ta3 == typemap['dyad']) and (ta4 == typemap['bead']):
@@ -202,19 +205,24 @@ def set_bonded_interactions(molecule,lhbool):
       molecule.bonds.append(Bond(4,a3,a1)) #bead-centerdyad, length 0.5e
       molecule.bonds.append(Bond(4,a3,a4)) #bead-centerdyad, length 0.5e
       molecule.bonds.append(Bond(5,a2,a3)) #bead-centerdyad, length 0.5e
-    if ((ta1 == typemap['ctd']) or (ta1 == typemap['dyad']) or (ta1 == typemap['bead'])) and (ta2 == typemap['gh']): # all of the below interactions are gh-gh
-      molecule.bonds.append(Bond(6,a2,a4))
-      molecule.bonds.append(Bond(7,a2,a5))
-      molecule.bonds.append(Bond(8,a3,a4))
-      molecule.bonds.append(Bond(9,a3,a7))
-      molecule.bonds.append(Bond(10,a5,a6))
-      molecule.bonds.append(Bond(11,a6,a7))
-      molecule.bonds.append(Bond(12,a2,a7))
-      molecule.bonds.append(Bond(13,a3,a6))
-      molecule.bonds.append(Bond(14,a4,a5))
-      molecule.bonds.append(Bond(17,nucl_array[inucl],a2))
-      molecule.bonds.append(Bond(17,nucl_array[inucl],a4))
-      molecule.bonds.append(Bond(17,nucl_array[inucl],a5))
+    if ((ta1 == typemap['gh']) and (ta6 == typemap['gh'])): # all of the below interactions are gh-gh
+      molecule.bonds.append(Bond(6,a1,a3))
+      molecule.bonds.append(Bond(7,a1,a4))
+      molecule.bonds.append(Bond(8,a2,a3))
+      molecule.bonds.append(Bond(9,a2,a6))
+      molecule.bonds.append(Bond(10,a4,a5))
+      molecule.bonds.append(Bond(11,a5,a6))
+      molecule.bonds.append(Bond(12,a1,a6))
+      molecule.bonds.append(Bond(13,a2,a5))
+      molecule.bonds.append(Bond(14,a3,a4))
+      # three bonds for both the dyad and nucl keep the LH bound to the dyad position
+      # any removed and you get off-dyad binding
+      molecule.bonds.append(Bond(17,dyad_array[inucl],a1)) # dyad-GH1
+      molecule.bonds.append(Bond(17,dyad_array[inucl],a3)) # dyad-GH3
+      molecule.bonds.append(Bond(17,dyad_array[inucl],a4)) # dyad-GH4
+      molecule.bonds.append(Bond(18,nucl_array[inucl],a1)) # nucl-GH1
+      molecule.bonds.append(Bond(18,nucl_array[inucl],a3)) # nucl-GH3
+      molecule.bonds.append(Bond(18,nucl_array[inucl],a4)) # nucl-GH4
       inucl = inucl + 1
     if (ta1 == typemap['gh']) and (ta2 == typemap['ctd']): #gh - ctd
       molecule.bonds.append(Bond(16,a1,a2))
@@ -253,21 +261,21 @@ def set_bonded_interactions(molecule,lhbool):
       molecule.angles.append(Angle(9,a1,a4,a4)) #orient enter exit dna with orient f
 
     #These are the angles for the globular head of the linker histone
-    if ((ta1 == typemap['ctd']) or (ta1 == typemap['dyad']) or (ta1 == typemap['bead'])) and (ta2 == typemap['gh']): # all of the below interactions are gh-gh
-      molecule.angles.append(Angle(13,a4,a2,a5)) #gh angle 1
-      molecule.angles.append(Angle(14,a2,a5,a6)) #gh angle 2
-      molecule.angles.append(Angle(15,a4,a3,a7)) #gh angle 3
-      molecule.angles.append(Angle(16,a3,a6,a7)) #gh angle 4
-      molecule.angles.append(Angle(17,a2,a7,a6)) #gh angle 5
-      molecule.angles.append(Angle(18,a3,a4,a5)) #gh angle 6
+    if ((ta1 == typemap['gh']) and (ta6 == typemap['gh'])):
+      molecule.angles.append(Angle(13,a3,a1,a4)) #gh angle 1
+      molecule.angles.append(Angle(14,a1,a4,a5)) #gh angle 2
+      molecule.angles.append(Angle(15,a3,a2,a6)) #gh angle 3
+      molecule.angles.append(Angle(16,a2,a5,a6)) #gh angle 4
+      molecule.angles.append(Angle(17,a1,a6,a5)) #gh angle 5
+      molecule.angles.append(Angle(18,a2,a3,a4)) #gh angle 6
 
     if (ta1 == typemap['ctd']) and (ta2 == typemap['ctd']) and (ta3 == typemap['ctd']):
       molecule.angles.append(Angle(19,a1,a2,a3))
 
     #dihedrals for the linker histone
-    if ((ta1 == typemap['ctd']) or (ta1 == typemap['dyad']) or (ta1 == typemap['bead'])) and (ta2 == typemap['gh']): # all of the below interactions are gh-gh
-      molecule.dihedrals.append(Dihedral(1,a4,a2,a5,a6)) #gh dihedral 1
-      molecule.dihedrals.append(Dihedral(2,a4,a3,a7,a6)) #gh dihedral 2
+    if ((ta1 == typemap['gh']) and (ta6 == typemap['gh'])):
+      molecule.dihedrals.append(Dihedral(1,a3,a1,a4,a5)) #gh dihedral 1
+      molecule.dihedrals.append(Dihedral(2,a3,a2,a6,a5)) #gh dihedral 2
     # taking away the third dihedral
     #if (ta4 == typemap['gh']) and (ta5 == typemap['ctd']):
     #  molecule.dihedrals.append(Dihedral(3,a1,a4,a5,a6)) #gh-ctd dihedral
@@ -345,7 +353,7 @@ def calculate_nrl_dna_unwrap(param):
   nrltmp = l - param.nucl_bp_unwrap + param.dna_in_nucl
   ltmp = l - param.nucl_bp_unwrap
   if modulo != 0:
-    print "Note: NRL of ends spefied (%d) was rounded to %d in order to be consistent with param.nucl_bp_unwrap (%d)  obtained from NRL (%d)" % ( param.nrlends, nrltmp, param.nucl_bp_unwrap, param.nrl)
+    print "Note: NRL of ends specified (%d) was rounded to %d in order to be consistent with param.nucl_bp_unwrap (%d)  obtained from NRL (%d)" % ( param.nrlends, nrltmp, param.nucl_bp_unwrap, param.nrl)
   param.nrlends = nrltmp
   param.dna_linker_length_ends = ltmp
 
@@ -456,11 +464,11 @@ def main():
     param.nrlends = args.nrlends
 
   if param.lh:
-    lhist = LinkerHistone()
+    lhist = LinkerHistone(geom.d)
 
   # calculate some parameters
   calculate_nrl_dna_unwrap(param)
- 
+
   # If there are zero nucleosomes, just draw DNA length of nrl
   if param.nnucleosomes == 0:
     param.dna_linker_length_ends = param.nrl
@@ -570,7 +578,7 @@ def main():
       if ibead == 0:
         pos = bead_pos0
         quat = bead_quat0
-    
+
         mytype = typemap['bead']
         if (inuc != 0):
           molid = inuc #first bead is part of prev nucl molecule
