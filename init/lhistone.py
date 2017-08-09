@@ -10,12 +10,12 @@ from vect_quat_util import *
 class LinkerHistone(object):
     __slots__ = ('ctd_mass', 'gh_mass', 'num_in_gh', 'linit',
                 'lequil', 'beta', 'salt_scale', 'lnucllh','salt_prefactor',
-                'ctd_shape', 'ctd_charges', 'ctd_beads',
+                'ctd_shape', 'ctd_charges', 'ctd_beads','ldyadlh',
                 'ctd_bond_length','bonds','angles','dihedrals',
                 'kbondgh','kghctd','kbendgh','ktorsgh','ghupsi',
                 'gh_data','ctd_charges')
 
-    def __init__(self):
+    def __init__(self,d):
       self.bonds = []
       self.angles = []
       self.dihedrals = []
@@ -45,9 +45,10 @@ class LinkerHistone(object):
       self.ctd_beads = 22
       self.linit = 7.0; # bond init length
       self.lequil = 15.0 # bond equil length
-      self.lnucllh = 33.0 # ghost-lh length
+      self.ldyadlh = 33.0 # dyad-lh length
+      self.lnucllh = self.ldyadlh + d # nucl-lh length
       self.beta = 110.0; # beta for the ctd
-      self.ctd_bond_length = 22.64 # gh ctd equil length (setting it to excluded volume distance)
+      self.ctd_bond_length = 16.50 # gh ctd equil length (setting it to excluded volume distance)
 
     # function to calculate the bonded topology for the linker histone
     def calculate_topology(self):
@@ -104,7 +105,8 @@ def write_lhist_variables(fnme,lhist,salt):
   fnew.write( "variable ghupsi equal %f\n" % lhist.ghupsi)
   fnew.write( "variable beta equal %f\n" % lhist.beta)
   fnew.write( "variable ctda equal %f\n" % lhist.lequil)
-  fnew.write( "variable lgh equal %f\n" % lhist.lnucllh)
+  fnew.write( "variable ldgh equal %f\n" % lhist.ldyadlh)
+  fnew.write( "variable lngh equal %f\n" % lhist.lnucllh)
 
 
 # returns a bond from the positions
@@ -131,7 +133,13 @@ def calc_dihedrals(pos1,pos2,pos3,pos4):
 
     x = np.dot(v,w)
     y = np.dot(np.cross(v2,v),w)
-    return np.degrees(np.arctan2(y,x))
+    psi = np.degrees(np.arctan2(y,x))
+    # this keeps the dihedrals with consistent sign conventions as lammps
+    # not my favorite implementation
+    if psi > -90:
+        return -psi
+    else:
+        return psi
 
 #Modular function that adds in the linker histones if selected
 def add_linker_histones(molecule,lhist,param):
