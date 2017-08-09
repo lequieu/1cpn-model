@@ -32,24 +32,17 @@ class Molecule:
                 if pos[j] > mymax: mymax = pos[j]
                 if pos[j] < mymin: mymin = pos[j]
         
-        #mymin -= mymin*(factor-1)
-        #mymax += mymax*(factor-1)
         mymin *= factor
         mymax *= factor
-        print mymin
-        print mymax
         #self.set_box(mymin[0],mymax[0],mymin[1],mymax[1],mymin[2],mymax[2])
         self.set_box(mymin,mymax,mymin,mymax,mymin,mymax)
 
     def set_com(self,pos):
         ''' shift all positions so that COM is at "pos" '''
         com = self.get_com()
-        print com
         shift = com + pos
         for i in range(len(self.ellipsoids)):
             self.ellipsoids[i].pos -= shift
-        com = self.get_com()
-        print com
 
 
     def get_com(self):

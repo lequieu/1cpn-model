@@ -345,15 +345,18 @@ def calculate_nrl_dna_unwrap(param):
   modulo = param.dna_linker_length % param.basepair_per_bead
   param.nucl_bp_unwrap = get_nucl_bp_offset[modulo]
 
-  print "Note: For nrl=%d, n_bp_unwrap=%d" % (param.nrl, param.nucl_bp_unwrap)
 
   # correct nrlends if necessary
   modulo = (param.dna_linker_length_ends + param.nucl_bp_unwrap) % param.basepair_per_bead
   l = round((param.dna_linker_length_ends + param.nucl_bp_unwrap) / param.basepair_per_bead) * param.basepair_per_bead
   nrltmp = l - param.nucl_bp_unwrap + param.dna_in_nucl
   ltmp = l - param.nucl_bp_unwrap
+
   if modulo != 0:
-    print "Note: NRL of ends specified (%d) was rounded to %d in order to be consistent with param.nucl_bp_unwrap (%d)  obtained from NRL (%d)" % ( param.nrlends, nrltmp, param.nucl_bp_unwrap, param.nrl)
+    print "Note: For nrl=%d, n_bp_unwrap=%d, nrlends= %d (changed!)" % (param.nrl, param.nucl_bp_unwrap, param.nrlends)
+  else:
+    print "Note: For nrl=%d, n_bp_unwrap=%d, nrlends= %d (as specified)" % (param.nrl, param.nucl_bp_unwrap, param.nrlends)
+
   param.nrlends = nrltmp
   param.dna_linker_length_ends = ltmp
 
