@@ -20,6 +20,7 @@ Contents:
    lammps
    init
    vizualization
+   analysis
    ...
 
 

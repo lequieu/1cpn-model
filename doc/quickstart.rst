@@ -14,7 +14,7 @@ Compiling LAMMPS with 1CPN
 
     sudo apt-get install git
 
-2. Navigate to a directory where you would like to install the 1CPN Model.
+2. Navigate to a directory where you would like to install the 1CPN Model. Optionally, you can create add a new bash variable `D_1CPN` so that 1CPN codes can be easily accessed.
 
 ::
 
@@ -47,11 +47,13 @@ Compiling LAMMPS with 1CPN
   cd $D_1CPN/1cpn-model/src/lammps
   make link
 
-6. Build LAMMPS
+6. Build LAMMPS with the `ASPHERE` and `MOLECULE` package.
 
 ::
 
   cd $D_1CPN/lammps-1cpn/src
+  make yes-ASPHERE
+  make yes-MOLECULE
   make serial
 
 
@@ -65,3 +67,8 @@ Running a Simple Simulation
 
 Vizualizing the Simulation
 ---------------------------
+
+
+Analyzing the Simulation
+---------------------------
+
