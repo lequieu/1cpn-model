@@ -29,6 +29,7 @@ Compiling LAMMPS with 1CPN
 ::
 
   git clone -b stable https://github.com/lammps/lammps.git lammps-1cpn
+  cd lammps-1cpn
   git checkout -b stable_31Mar2017
 
 
