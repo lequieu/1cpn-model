@@ -353,9 +353,9 @@ def calculate_nrl_dna_unwrap(param):
   ltmp = l - param.nucl_bp_unwrap
 
   if modulo != 0:
-    print "Note: For nrl=%d, n_bp_unwrap=%d, nrlends= %d (changed!)" % (param.nrl, param.nucl_bp_unwrap, param.nrlends)
+    print "Note: For nrl=%d, n_bp_unwrap=%d, nrlends= %d (changed from %d!)" % (param.nrl, param.nucl_bp_unwrap, nrltmp,param.nrlends)
   else:
-    print "Note: For nrl=%d, n_bp_unwrap=%d, nrlends= %d (as specified)" % (param.nrl, param.nucl_bp_unwrap, param.nrlends)
+    print "Note: For nrl=%d, n_bp_unwrap=%d, nrlends= %d (as specified)" % (param.nrl, param.nucl_bp_unwrap, nrltmp)
 
   param.nrlends = nrltmp
   param.dna_linker_length_ends = ltmp
