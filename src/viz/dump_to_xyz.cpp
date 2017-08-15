@@ -17,7 +17,6 @@ class Bond{
       Bond(int a, int b):stea(a),steb(b){};
 };
 
-using namespace LAMMPS_NS;
 int main(int argc, char**argv){
     
     if (argc != 3) {
