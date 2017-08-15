@@ -5,7 +5,6 @@
 #include <fstream>
 #include <string>
 #include "trajectory_iterator.h"
-#include "math_vector.h"
 
 
 
