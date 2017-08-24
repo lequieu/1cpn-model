@@ -6,10 +6,22 @@
 #include <string>
 #include <sstream>
 #include <limits>
-#include "math_vector.h"
 
-//For quaternion use only (probably try to do it better later on)
-using namespace LAMMPS_NS;
+
+// A few useful functions copied from LAMMPS
+typedef double vector[3];                // 0:x  1:y  2:z
+typedef double quaternion[4];                // quaternion
+typedef double form[6];                        // 0:xx 1:yy 2:zz 3:zy 4:zx 5:yx
+inline void quat_vec_rot(vector &dest, vector &src, quaternion &q) {
+  quaternion aa={q[0]*q[0], q[1]*q[1], q[2]*q[2], q[3]*q[3]};
+  form ab={q[0]*q[1], q[0]*q[2], q[0]*q[3], q[1]*q[2], q[1]*q[3], q[2]*q[3]};
+  dest[0] = (aa[0]+aa[1]-aa[2]-aa[3])*src[0]+
+            ((ab[3]-ab[2])*src[1]+(ab[1]+ab[4])*src[2])*2.0;
+  dest[1] = (aa[0]-aa[1]+aa[2]-aa[3])*src[1]+
+            ((ab[2]+ab[3])*src[0]+(ab[5]-ab[0])*src[2])*2.0;
+  dest[2] = (aa[0]-aa[1]-aa[2]+aa[3])*src[2]+
+            ((ab[4]-ab[1])*src[0]+(ab[0]+ab[5])*src[1])*2.0;
+}
 
 //This is a standard c++ class that we plan to use for 1cpn analysis
 //The TrajectoryIterator contains a load->get format which will be run from a separate c++ script

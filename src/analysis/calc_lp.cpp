@@ -5,13 +5,12 @@
 #include <fstream>
 #include <string>
 #include "trajectory_iterator.h"
-#include "math_vector.h"
 
 
 std::vector<double> rotate(std::vector<double> in, std::vector<double> u, const double theta){
-    LAMMPS_NS::vector myin, myout;
+    vector myin, myout;
     std::vector<double> out(3);
-    LAMMPS_NS::quaternion q;
+    quaternion q;
 
     for (size_t i=0;i<3;i++){
       myin[i] = in[i];
@@ -24,7 +23,7 @@ std::vector<double> rotate(std::vector<double> in, std::vector<double> u, const 
     q[2] = u[1]/norm  * sin(theta/2.0);
     q[3] = u[2]/norm  * sin(theta/2.0);
 
-    LAMMPS_NS::quat_vec_rot(myout, myin, q);
+    quat_vec_rot(myout, myin, q);
     out[0] = myout[0]; 
     out[1] = myout[1]; 
     out[2] = myout[2]; 

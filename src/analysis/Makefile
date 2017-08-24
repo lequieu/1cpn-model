@@ -1,10 +1,9 @@
 CC =     g++
 #CFLGS      =  -O2 -finline-functions -funroll-loops
-LAMMPS_SRC ?= '../../../lammps-1cpn/src/'
 BINDIR = '../../bin'
 CFLGS      =  -ggdb 
 LIBRY      =  -L/usr/local/lib -lm 
-INCLD      = -I../include -I${LAMMPS_SRC}
+INCLD      = -I../include 
 
 all: calc_fvu_angle calc_site_dist shuffle_repx_dump calc_lp calc_sedimentation\
      calc_msd_com calc_com clip_traj analyze_two_nucl_config
