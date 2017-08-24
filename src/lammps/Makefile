@@ -30,6 +30,15 @@ local_files := $(addprefix $(PWD)/,$(files))
 #unlink:
 #	find ${LAMMPS_SRC} -type l -delete
 
+
+help:
+	@echo "Please use one of the following options:"
+	@echo "  make link       to soft link the 1CPN-model C++ files into the LAMMPS src directory "
+	@echo "  make unlink     to remove the soft links between the 1CPN-model and LAMMPS "
+	@echo ""
+	@echo "Note: Path to LAMMPS source is  LAMMPS_SRC=${LAMMPS_SRC}"
+	@echo "This can be changed using 'make link LAMMPS_SRC=<new path>.'"
+
 # link only some files
 link: 
 	#ln -sfr $(files) -t ${LAMMPS_SRC} # Older ln doesnt permit the -r flag

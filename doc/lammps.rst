@@ -7,6 +7,11 @@ Linking 1CPN with Lammps
 Add Detailed instructions here
 
 
+1CPN High Performance
+-----------------------
+
+mention the `fix balance` command
+
 Custom 1CPN Potentials
 -----------------------
 

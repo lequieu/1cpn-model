@@ -217,6 +217,11 @@ void TrajectoryIterator::previous_frame(void) {
 std::vector<std::vector<double>> TrajectoryIterator::get_coord(void) {
     std::vector<std::vector<double>> atom_pos;
 
+    if (numAtoms_ <= 0){
+        std::cout << "Error! Trying to get_coord() but numAtoms <= 0. Could the traj file be empty?" << std::endl;
+        exit(1);
+    }
+
     //Initialize and size the atom vectors
     atom_pos.resize(numAtoms_); 
     for(size_t i=0; i<numAtoms_; i++) {atom_pos[i].resize(3);}
@@ -248,6 +253,11 @@ std::vector<std::vector<double>> TrajectoryIterator::get_coord(void) {
 //Return the quaterions as a vector of vectors
 std::vector<std::vector<double>> TrajectoryIterator::get_quat() {
     std::vector<std::vector<double>> atom_quat;
+
+    if (numAtoms_ <= 0){
+        std::cout << "Error! Trying to get_quat() but numAtoms <= 0. Could the traj file be empty?" << std::endl;
+        exit(1);
+    }
 
     //Initialize and size the quat vectors to num atoms
     atom_quat.resize(numAtoms_);
@@ -320,11 +330,16 @@ std::vector<std::vector<double>> TrajectoryIterator::get_vect(std::vector<std::v
 
 
 
+
 //Get the type of each of the atoms
 //This should only really be called once
 std::vector<int> TrajectoryIterator::get_type() {
     std::vector<int> atom_type;
 
+    if (numAtoms_ <= 0){
+        std::cout << "Error! Trying to get_type() but numAtoms <= 0. Could the traj file be empty?" << std::endl;
+        exit(1);
+    }
     //Initialize and size the vector
     atom_type.resize(numAtoms_);
 

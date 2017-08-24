@@ -46,7 +46,7 @@ int main(int argc, char**argv){
 
     int nnucl; 
     std::vector<int> nucl_ids;
-    double Rnucl = 10; //this is just a guess
+    double Rnucl = 50; //this is just a guess
     double S1 = 11.1; //Arya2006 eq 32
     double S20w;
        
@@ -78,17 +78,20 @@ int main(int argc, char**argv){
         //compute sedimentation coeff 
         double sum=0;
         double dx,dy,dz,dr;
+        int nuclj, nuclk;
         for(size_t j=0;j<nnucl-1;j++){
+          nuclj = nucl_ids[j];
           for(size_t k=j+1;k<nnucl;k++){
-            dx = atoms[k][0] - atoms[j][0];
-            dy = atoms[k][1] - atoms[j][1];
-            dz = atoms[k][2] - atoms[j][2];
+            nuclk = nucl_ids[k];
+            dx = atoms[nuclk][0] - atoms[nuclj][0];
+            dy = atoms[nuclk][1] - atoms[nuclj][1];
+            dz = atoms[nuclk][2] - atoms[nuclj][2];
             dr = sqrt(dx*dx+dy*dy+dz*dz);
             sum += 1.0/dr;
           }
         }
-        S20w = S1 * (1 + 2.*Rnucl / nnucl * sum);
-        ofile << t<< "\t" <<S20w << std::endl;
+        S20w = S1 * (1 + 2.* Rnucl / nnucl * sum);
+        ofile << t<< "\t" <<S20w << "\t" << sum << std::endl;
     
         parser.next_frame();
         if (firstframe) firstframe = false;
