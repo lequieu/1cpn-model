@@ -30,10 +30,10 @@ class LinkerHistone(object):
       # the charges are taken from the sequence of the H1.4 tails
       self.ctd_charges = [0,2,2,3,0,4,0,2,2,4,0,2,3,2,2,2,2,2,2,2,2,3]; # array of H1.4 ctd CG charges
       # set the rest of the parameters
-      self.kbondgh = 100.0 # bond strength
-      self.kghctd = 1.0   # bond between gh and ctd strength
+      self.kbondgh = 200.0 # bond strength
+      self.kghctd = 20.0   # bond between gh and ctd strength
       self.kbendgh = 50.0 # angle strength
-      self.ktorsgh = 20.0 # dihedral strength
+      self.ktorsgh = 50.0 # dihedral strength
       self.ghupsi = -56 # dihedral between gh and ctd to prevent rotation
       self.salt_scale = { 5:1.1063,
                           15:1.1644,
@@ -43,7 +43,7 @@ class LinkerHistone(object):
       self.salt_prefactor = 1.0 # 1.5
       self.num_in_gh = 6
       self.ctd_beads = 22
-      self.linit = 7.0; # bond init length
+      self.linit = 15.0; # bond init length
       self.lequil = 15.0 # bond equil length
       self.ldyadlh = 33.0 # dyad-lh length
       self.lnucllh = self.ldyadlh + d # nucl-lh length

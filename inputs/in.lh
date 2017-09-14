@@ -38,6 +38,8 @@ angle_coeff 16  harmonic      ${kbendgh} ${ghdelta}
 angle_coeff 17  harmonic      ${kbendgh} ${ghzeta}
 angle_coeff 18  harmonic      ${kbendgh} ${ghomega}
 angle_coeff 19  harmonic      ${kbeta} ${beta}
+angle_coeff 20  orient        angle_f 0.0 0.0 ${korient}  0.0 0.0 0.0
+angle_coeff 21  orient        angle_u 0.0 0.0 ${korient}  0.0 0.0 0.0
 
 #Dihedral Coeffs
 # for the linker histone globular head only

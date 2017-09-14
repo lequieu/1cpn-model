@@ -31,7 +31,7 @@ class Molecule:
             for j in range(3):
                 if pos[j] > mymax: mymax = pos[j]
                 if pos[j] < mymin: mymin = pos[j]
-        
+
         mymin *= factor
         mymax *= factor
         #self.set_box(mymin[0],mymax[0],mymin[1],mymax[1],mymin[2],mymax[2])
@@ -55,7 +55,7 @@ class Molecule:
             masstotal += mass
         com /= masstotal
         return com
-            
+
 
     def write_psf(self,fnme):
         f = open(fnme,'w')

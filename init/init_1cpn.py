@@ -149,7 +149,7 @@ def set_bonded_interactions(molecule,lhbool):
   # angle_type 19 ctd-ctd angle
   # angle_type 13-18 globular head interactions
   if lhbool:
-    molecule.nangle_type = 19
+    molecule.nangle_type = 21
   else:
     molecule.nangle_type = 12
 
@@ -223,7 +223,6 @@ def set_bonded_interactions(molecule,lhbool):
       molecule.bonds.append(Bond(18,nucl_array[inucl],a1)) # nucl-GH1
       molecule.bonds.append(Bond(18,nucl_array[inucl],a3)) # nucl-GH3
       molecule.bonds.append(Bond(18,nucl_array[inucl],a4)) # nucl-GH4
-      inucl = inucl + 1
     if (ta1 == typemap['gh']) and (ta2 == typemap['ctd']): #gh - ctd
       molecule.bonds.append(Bond(16,a1,a2))
     if (ta1 == typemap['ctd']) and (ta2 == typemap['ctd']): #ctd - ctd
@@ -268,6 +267,13 @@ def set_bonded_interactions(molecule,lhbool):
       molecule.angles.append(Angle(16,a2,a5,a6)) #gh angle 4
       molecule.angles.append(Angle(17,a1,a6,a5)) #gh angle 5
       molecule.angles.append(Angle(18,a2,a3,a4)) #gh angle 6
+      molecule.angles.append(Angle(20,a1,nucl_array[inucl],nucl_array[inucl])) #nucl orient gh
+      molecule.angles.append(Angle(21,a1,nucl_array[inucl],nucl_array[inucl])) #nucl orient gh
+      molecule.angles.append(Angle(20,a3,nucl_array[inucl],nucl_array[inucl])) #nucl orient gh
+      molecule.angles.append(Angle(21,a3,nucl_array[inucl],nucl_array[inucl])) #nucl orient gh
+      molecule.angles.append(Angle(20,a6,nucl_array[inucl],nucl_array[inucl])) #nucl orient gh
+      molecule.angles.append(Angle(21,a6,nucl_array[inucl],nucl_array[inucl])) #nucl orient gh
+      inucl = inucl + 1
 
     if (ta1 == typemap['ctd']) and (ta2 == typemap['ctd']) and (ta3 == typemap['ctd']):
       molecule.angles.append(Angle(19,a1,a2,a3))
@@ -656,7 +662,7 @@ def main():
   # zero center of mass to (0,0,0)
   molecule.set_com((0,0,0))
 
-  #auto set box size 
+  #auto set box size
   molecule.auto_set_box(param.boxsize_factor);
 
   if (not os.path.exists(param.directory)):
@@ -666,7 +672,7 @@ def main():
       write_lhist_variables('in.var-lh',lhist,param.salt)
   write_lammps_variables('in.variables',param,geom)
   molecule.write_dump("in.dump")
-  #molecule.write_xyz("in.xyz")
+  molecule.write_xyz("in.xyz")
   molecule.write_lammps_input("in.lammps")
   write_args(args, param, geom, "%s/in.args" %   param.directory)
   molecule.write_psf("%s/in.psf" % param.directory)
