@@ -13,7 +13,7 @@ class LinkerHistone(object):
                 'ctd_shape', 'ctd_charges', 'ctd_beads','ldyadlh',
                 'ctd_bond_length','bonds','angles','dihedrals',
                 'kbondgh','kghctd','kbendgh','ktorsgh','ghupsi',
-                'gh_data','ctd_charges')
+                'gh_data','ctd_charges','lnuclctd','ldyadctd')
 
     def __init__(self,d):
       self.bonds = []
@@ -31,10 +31,10 @@ class LinkerHistone(object):
       self.ctd_charges = [0,2,2,3,0,4,0,2,2,4,0,2,3,2,2,2,2,2,2,2,2,3]; # array of H1.4 ctd CG charges
       # set the rest of the parameters
       self.kbondgh = 200.0 # bond strength
-      self.kghctd = 20.0   # bond between gh and ctd strength
+      self.kghctd = 10.0   # bond between gh and ctd strength
       self.kbendgh = 50.0 # angle strength
       self.ktorsgh = 50.0 # dihedral strength
-      self.ghupsi = -56 # dihedral between gh and ctd to prevent rotation
+      self.ghupsi = 180.0 # dihedral between gh and ctd to prevent rotation
       self.salt_scale = { 5:1.1063,
                           15:1.1644,
                           80:1.4815,
@@ -46,7 +46,9 @@ class LinkerHistone(object):
       self.linit = 15.0; # bond init length
       self.lequil = 15.0 # bond equil length
       self.ldyadlh = 33.0 # dyad-lh length
+      self.ldyadctd = 46.0 # ctd-dyad length
       self.lnucllh = self.ldyadlh + d # nucl-lh length
+      self.lnuclctd = self.ldyadctd + d # nucl-ctd length
       self.beta = 110.0; # beta for the ctd
       self.ctd_bond_length = 16.50 # gh ctd equil length (setting it to excluded volume distance)
 
@@ -107,6 +109,8 @@ def write_lhist_variables(fnme,lhist,salt):
   fnew.write( "variable ctda equal %f\n" % lhist.lequil)
   fnew.write( "variable ldgh equal %f\n" % lhist.ldyadlh)
   fnew.write( "variable lngh equal %f\n" % lhist.lnucllh)
+  fnew.write( "variable ldctd equal %f\n" % lhist.ldyadctd)
+  fnew.write( "variable lnctd equal %f\n" % lhist.lnuclctd)
 
 
 # returns a bond from the positions
@@ -137,9 +141,9 @@ def calc_dihedrals(pos1,pos2,pos3,pos4):
     # this keeps the dihedrals with consistent sign conventions as lammps
     # not my favorite implementation
     if psi > -90:
-        return -psi
-    else:
         return psi
+    else:
+        return -psi
 
 #Modular function that adds in the linker histones if selected
 def add_linker_histones(molecule,lhist,param):

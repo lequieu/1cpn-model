@@ -125,12 +125,13 @@ def set_bonded_interactions(molecule,lhbool):
   # bond_type 4  bead-centerdyad, length j
   # bond_type 5  nucl-centerdyad, length i
   # bond_type 6-14 globular head interactions
-  # bond_type 15  ctd-ctd
-  # bond_type 16  gh-ctd
-  # bond_type 17  gh-dyad
-  # bond_type 18  gh-nucl
+  # bond_type 15  ctd-ctd, gh-ctd
+  # bond_type 16  gh-dyad
+  # bond_type 17  gh-nucl
+  # bond_type 18  ctd-dyad
+  # bond_type 19  ctd-nucl
   if lhbool:
-    molecule.nbond_type = 18
+    molecule.nbond_type = 19
   else:
     molecule.nbond_type = 5
 
@@ -149,7 +150,7 @@ def set_bonded_interactions(molecule,lhbool):
   # angle_type 19 ctd-ctd angle
   # angle_type 13-18 globular head interactions
   if lhbool:
-    molecule.nangle_type = 21
+    molecule.nangle_type = 19
   else:
     molecule.nangle_type = 12
 
@@ -157,9 +158,9 @@ def set_bonded_interactions(molecule,lhbool):
   # we are now using dihedrals to preserve the structure of the globular head of the linker histone
   # dihedral_type 1 beads 2-0-3-4 on the globular head
   # dihderal_type 2 beads 2-1-5-4 on the globular head
-  # dihderal_type 3 beads 3-6-CTD-CTD to prevent rotation of the GH - REMOVED
+  # dihderal_type 3 beads nucl-dyad-gh6-ctd1 to prevent rotations
   if lhbool:
-    molecule.ndihedral_type = 2;
+    molecule.ndihedral_type = 3;
   else:
     molecule.ndihedral_type = 0;
 
@@ -217,14 +218,16 @@ def set_bonded_interactions(molecule,lhbool):
       molecule.bonds.append(Bond(14,a3,a4))
       # three bonds for both the dyad and nucl keep the LH bound to the dyad position
       # any removed and you get off-dyad binding
-      molecule.bonds.append(Bond(17,dyad_array[inucl],a1)) # dyad-GH1
-      molecule.bonds.append(Bond(17,dyad_array[inucl],a3)) # dyad-GH3
-      molecule.bonds.append(Bond(17,dyad_array[inucl],a4)) # dyad-GH4
-      molecule.bonds.append(Bond(18,nucl_array[inucl],a1)) # nucl-GH1
-      molecule.bonds.append(Bond(18,nucl_array[inucl],a3)) # nucl-GH3
-      molecule.bonds.append(Bond(18,nucl_array[inucl],a4)) # nucl-GH4
+      molecule.bonds.append(Bond(16,dyad_array[inucl],a1)) # dyad-GH1
+      molecule.bonds.append(Bond(16,dyad_array[inucl],a3)) # dyad-GH3
+      molecule.bonds.append(Bond(16,dyad_array[inucl],a4)) # dyad-GH4
+      molecule.bonds.append(Bond(17,nucl_array[inucl],a1)) # nucl-GH1
+      molecule.bonds.append(Bond(17,nucl_array[inucl],a3)) # nucl-GH3
+      molecule.bonds.append(Bond(17,nucl_array[inucl],a4)) # nucl-GH4
     if (ta1 == typemap['gh']) and (ta2 == typemap['ctd']): #gh - ctd
-      molecule.bonds.append(Bond(16,a1,a2))
+      molecule.bonds.append(Bond(15,a1,a2))
+      molecule.bonds.append(Bond(18,dyad_array[inucl],a2)) # dyad-GH4
+      molecule.bonds.append(Bond(19,nucl_array[inucl],a2)) # dyad-GH4
     if (ta1 == typemap['ctd']) and (ta2 == typemap['ctd']): #ctd - ctd
       molecule.bonds.append(Bond(15,a1,a2))
 
@@ -267,13 +270,6 @@ def set_bonded_interactions(molecule,lhbool):
       molecule.angles.append(Angle(16,a2,a5,a6)) #gh angle 4
       molecule.angles.append(Angle(17,a1,a6,a5)) #gh angle 5
       molecule.angles.append(Angle(18,a2,a3,a4)) #gh angle 6
-      molecule.angles.append(Angle(20,a1,nucl_array[inucl],nucl_array[inucl])) #nucl orient gh
-      molecule.angles.append(Angle(21,a1,nucl_array[inucl],nucl_array[inucl])) #nucl orient gh
-      molecule.angles.append(Angle(20,a3,nucl_array[inucl],nucl_array[inucl])) #nucl orient gh
-      molecule.angles.append(Angle(21,a3,nucl_array[inucl],nucl_array[inucl])) #nucl orient gh
-      molecule.angles.append(Angle(20,a6,nucl_array[inucl],nucl_array[inucl])) #nucl orient gh
-      molecule.angles.append(Angle(21,a6,nucl_array[inucl],nucl_array[inucl])) #nucl orient gh
-      inucl = inucl + 1
 
     if (ta1 == typemap['ctd']) and (ta2 == typemap['ctd']) and (ta3 == typemap['ctd']):
       molecule.angles.append(Angle(19,a1,a2,a3))
@@ -283,8 +279,10 @@ def set_bonded_interactions(molecule,lhbool):
       molecule.dihedrals.append(Dihedral(1,a3,a1,a4,a5)) #gh dihedral 1
       molecule.dihedrals.append(Dihedral(2,a3,a2,a6,a5)) #gh dihedral 2
     # taking away the third dihedral
-    #if (ta4 == typemap['gh']) and (ta5 == typemap['ctd']):
-    #  molecule.dihedrals.append(Dihedral(3,a1,a4,a5,a6)) #gh-ctd dihedral
+    if (ta1 == typemap['gh']) and (ta2 == typemap['ctd']):
+      molecule.dihedrals.append(Dihedral(3,nucl_array[inucl],dyad_array[inucl],a1,a2)) #gh-ctd dihedral
+      # the nucl updater is moved to here
+      inucl = inucl + 1
 
 def align_with_1kx5(molecule,param):
 
