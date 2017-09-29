@@ -670,7 +670,7 @@ def main():
       write_lhist_variables('in.var-lh',lhist,param.salt)
   write_lammps_variables('in.variables',param,geom)
   molecule.write_dump("in.dump")
-  #molecule.write_xyz("in.xyz")
+  molecule.write_xyz("in.xyz")
   molecule.write_lammps_input("in.lammps")
   write_args(args, param, geom, "%s/in.args" %   param.directory)
   molecule.write_psf("%s/in.psf" % param.directory)
