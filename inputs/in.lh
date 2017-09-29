@@ -25,11 +25,9 @@ bond_coeff  11   harmonic ${kbondgh}   ${ghf}       #gh5-gh6
 bond_coeff  12   harmonic ${kbondgh}   ${ghg}       #gh1-gh6
 bond_coeff  13   harmonic ${kbondgh}   ${ghh}       #gh2-gh5
 bond_coeff  14   harmonic ${kbondgh}   ${ghi}       #gh3-gh4
-bond_coeff  15   harmonic ${kghctd}    ${ctda}      #ctd-ctd bonds
-bond_coeff  16   harmonic ${kghctd}   ${ldgh}      #gh-ghost bond
-bond_coeff  17   harmonic ${kghctd}   ${lngh}      #gh-nucl bond
-bond_coeff  18   harmonic ${kghctd}   ${ldctd}      #gh-nucl bond
-bond_coeff  19   harmonic ${kghctd}   ${lnctd}      #gh-nucl bond
+bond_coeff  15   harmonic ${kbondctd}   ${ctda}      #ctd-ctd bonds
+bond_coeff  16   harmonic ${kbondgh}   ${ldgh}      #gh-ghost bond
+bond_coeff  17   harmonic ${kbondgh}   ${lngh}      #gh-nucl bond
 
 #Angle Coeffs
 angle_coeff 13  harmonic      ${kbendgh} ${ghalpha}
@@ -44,15 +42,15 @@ angle_coeff 19  harmonic      ${kbeta} ${beta}
 # for the linker histone globular head only
 dihedral_coeff 1 ${ktorsgh} 1 ${ghphi} 0.0
 dihedral_coeff 2 ${ktorsgh} 1 ${ghpsi} 0.0
-dihedral_coeff 3 ${ktorsgh} 1 ${ghupsi} 0.0
+#dihedral_coeff 3 ${ktorsgh} 1 ${ghupsi} 0.0
 
 #Pair Coeffs
 pair_modify pair lj/cut mix arithmetic
 
 pair_coeff   3 3*   none
 pair_coeff   1 4*   zewdie 0.1  30.0 80
-pair_coeff   2 4    lj/cut/coul/debye ${kev} 23.000
-pair_coeff   2 5    lj/cut/coul/debye ${kev} 27.000
+pair_coeff   2 4    lj/cut/coul/debye ${kev} 16.000
+pair_coeff   2 5    lj/cut/coul/debye ${kev} 18.000
 pair_coeff   4 4    lj/cut ${kev} 15.000
 pair_coeff   5 5    lj/cut ${kev} 18.000 
 

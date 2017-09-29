@@ -125,13 +125,12 @@ def set_bonded_interactions(molecule,lhbool):
   # bond_type 4  bead-centerdyad, length j
   # bond_type 5  nucl-centerdyad, length i
   # bond_type 6-14 globular head interactions
-  # bond_type 15  ctd-ctd, gh-ctd
-  # bond_type 16  gh-dyad
-  # bond_type 17  gh-nucl
-  # bond_type 18  ctd-dyad
-  # bond_type 19  ctd-nucl
+  # bond_type 15  ctd-ctd
+  # bond_type 16  gh-ctd
+  # bond_type 17  gh-dyad
+  # bond_type 18  gh-nucl
   if lhbool:
-    molecule.nbond_type = 19
+    molecule.nbond_type = 17
   else:
     molecule.nbond_type = 5
 
@@ -158,9 +157,9 @@ def set_bonded_interactions(molecule,lhbool):
   # we are now using dihedrals to preserve the structure of the globular head of the linker histone
   # dihedral_type 1 beads 2-0-3-4 on the globular head
   # dihderal_type 2 beads 2-1-5-4 on the globular head
-  # dihderal_type 3 beads nucl-dyad-gh6-ctd1 to prevent rotations
+  # dihderal_type 3 beads 3-6-CTD-CTD to prevent rotation of the GH - REMOVED
   if lhbool:
-    molecule.ndihedral_type = 3;
+    molecule.ndihedral_type = 2;
   else:
     molecule.ndihedral_type = 0;
 
@@ -226,8 +225,6 @@ def set_bonded_interactions(molecule,lhbool):
       molecule.bonds.append(Bond(17,nucl_array[inucl],a4)) # nucl-GH4
     if (ta1 == typemap['gh']) and (ta2 == typemap['ctd']): #gh - ctd
       molecule.bonds.append(Bond(15,a1,a2))
-      molecule.bonds.append(Bond(18,dyad_array[inucl],a2)) # dyad-GH4
-      molecule.bonds.append(Bond(19,nucl_array[inucl],a2)) # dyad-GH4
     if (ta1 == typemap['ctd']) and (ta2 == typemap['ctd']): #ctd - ctd
       molecule.bonds.append(Bond(15,a1,a2))
 
@@ -280,7 +277,7 @@ def set_bonded_interactions(molecule,lhbool):
       molecule.dihedrals.append(Dihedral(2,a3,a2,a6,a5)) #gh dihedral 2
     # taking away the third dihedral
     if (ta1 == typemap['gh']) and (ta2 == typemap['ctd']):
-      molecule.dihedrals.append(Dihedral(3,nucl_array[inucl],dyad_array[inucl],a1,a2)) #gh-ctd dihedral
+      #molecule.dihedrals.append(Dihedral(3,nucl_array[inucl],dyad_array[inucl],a1,a2)) #gh-ctd dihedral
       # the nucl updater is moved to here
       inucl = inucl + 1
 
@@ -670,7 +667,7 @@ def main():
       write_lhist_variables('in.var-lh',lhist,param.salt)
   write_lammps_variables('in.variables',param,geom)
   molecule.write_dump("in.dump")
-  molecule.write_xyz("in.xyz")
+  #molecule.write_xyz("in.xyz")
   molecule.write_lammps_input("in.lammps")
   write_args(args, param, geom, "%s/in.args" %   param.directory)
   molecule.write_psf("%s/in.psf" % param.directory)
