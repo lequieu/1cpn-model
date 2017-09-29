@@ -8,7 +8,7 @@ mol delrep 0 0
 #mol delrep 0 1
 
 #smoothing freq
-set smoothfreq 0
+set smoothfreq 5
 
 mol representation vdw 25.0 #1
 mol addrep 0
