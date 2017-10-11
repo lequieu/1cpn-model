@@ -1,15 +1,15 @@
-variable ps0   equal 48.521023
-variable ps000 equal 1.673708
-variable pscc2 equal -0.609490
-variable ps220 equal -0.026884
-variable ps222 equal 0.000000
+variable ps0   equal 55.000000
+variable ps000 equal 1.558539
+variable pscc2 equal -0.755781
+variable ps220 equal 0.142901
+variable ps222 equal 0.292164
 variable ps224 equal 0.000000
 #note that energy units normalized to pe0 = 1
 variable pe0   equal 1.000000
-variable pe000 equal 0.478425
-variable pecc2 equal 0.437864
-variable pe220 equal 0.290547
-variable pe222 equal 0.000000
+variable pe000 equal 0.605331
+variable pecc2 equal 0.527787
+variable pe220 equal -0.029012
+variable pe222 equal -0.269503
 variable pe224 equal 0.000000
 
 variable zewdie_rcut equal 300
