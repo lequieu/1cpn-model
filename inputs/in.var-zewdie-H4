@@ -5,7 +5,7 @@ variable ps220 equal 0.151193
 variable ps222 equal 0.266979
 variable ps224 equal 0.000000
 #note that energy units normalized to pe0 = 1
-variable pe0   equal 1.000000
+variable pe0   equal 8.920600
 variable pe000 equal 0.743431
 variable pecc2 equal 0.565091
 variable pe220 equal -0.246410
