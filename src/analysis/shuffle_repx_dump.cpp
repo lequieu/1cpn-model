@@ -76,6 +76,7 @@ int main(int argc, char**argv){
 
     //Load the trajectories into the parsers
     parsers.resize(nreplicas);
+    std::cout << "nframes: ";
     for (int i=0;i < nreplicas; i++ ){
         std::string dumpfilename;
         dumpfilename = dumpfilenameprefix + "." +  std::to_string(i) + ".dump";
@@ -84,6 +85,7 @@ int main(int argc, char**argv){
         //check that all files are same size
         int nframes, nframes_prev;
         nframes = parsers[i].get_numFrames();
+        std::cout << nframes << " ";
         if ((i) && (nframes != nframes_prev)){
             uneven_length_flag = true;
             //calc min of prev and current
@@ -96,6 +98,7 @@ int main(int argc, char**argv){
         newdumpfilename = newdumpfilenameprefix + "." + std::to_string(i) + ".dump";
         std::ofstream file(newdumpfilename, std::ofstream::out); 
     }
+    std::cout << std::endl;
 
     if (uneven_length_flag){
       std::cerr << "Warning! dump files do not have equal number of frames. Only reading first " << maxtimesteps << " frames" << std::endl;
