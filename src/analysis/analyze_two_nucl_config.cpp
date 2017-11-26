@@ -45,6 +45,8 @@ int main(int argc, char**argv){
     atom_types = parser.get_type(); 
     ntimestep = parser.get_numFrames();
 
+    double halfbox[3];
+
     // define vectors
     std::vector<double> r(3),rhat(3),fA(3),fB(3);
     double thetaA,thetaB,phi;
@@ -78,6 +80,8 @@ int main(int argc, char**argv){
         atoms = parser.get_coord();
         quats = parser.get_quat();
         vects_f = parser.get_vect(quats,'f');
+        box_dim = parser.get_boxDim();
+
         
         fA = vects_f[nuclA];
         fB = vects_f[nuclB];
@@ -85,6 +89,19 @@ int main(int argc, char**argv){
         r[0] = atoms[nuclB][0] - atoms[nuclA][0];
         r[1] = atoms[nuclB][1] - atoms[nuclA][1];
         r[2] = atoms[nuclB][2] - atoms[nuclA][2];
+
+        //apply pbc
+        halfbox[0] = 0.5* (box_dim[1] - box_dim[0]);
+        halfbox[1] = 0.5* (box_dim[3] - box_dim[2]);
+        halfbox[2] = 0.5* (box_dim[5] - box_dim[4]);
+
+        if (r[0] >  halfbox[0]) r[0] -= halfbox[0]; 
+        if (r[0] <- halfbox[0]) r[0] += halfbox[0]; 
+        if (r[1] >  halfbox[1]) r[1] -= halfbox[1]; 
+        if (r[1] <- halfbox[1]) r[1] += halfbox[1]; 
+        if (r[2] >  halfbox[2]) r[2] -= halfbox[2]; 
+        if (r[2] <- halfbox[2]) r[2] += halfbox[2]; 
+
         rnorm = sqrt(r[0]*r[0] + r[1]*r[1] + r[2]*r[2]);
         rhat[0] = r[0]/rnorm;
         rhat[1] = r[1]/rnorm;
@@ -106,9 +123,9 @@ int main(int argc, char**argv){
         phi = acos(fAdotfB) * 180. / M_PI;
         
 
+        ofile << t << " " <<rnorm << " " << phi << " " << thetaA << " " << thetaB << std::endl;
         //threshold rnorm
         if (rnorm < rnorm_saddle){ //bound r region
-          ofile << t << " " <<rnorm << " " << phi << " " << thetaA << " " << thetaB << std::endl;
           //ofile << t << " " <<rnorm << " " << fAdotfB << " " << rdotfA << " " << rdotfB << std::endl;
           count_in_r_region[0]++;
 
