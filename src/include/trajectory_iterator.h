@@ -36,6 +36,7 @@ class TrajectoryIterator {
         std::vector<float> boxDimPrev_; //prev boxDim
         std::streampos pos_;
         std::streampos posPrev_;
+		bool crash_ = false;   //Checks for a crash
         long long timestep_; 
         long long timestepPrev_; 
         
@@ -60,9 +61,13 @@ class TrajectoryIterator {
         int get_numAtoms(void);
         int get_numFrames(void);
         int get_dumpfreq(void);
-        int next_frame(void); 
+        int next_frame(void); 	
+		bool get_crash(void);
+		bool isFloat(std::string);
+		bool check_crash(std::string);
         void previous_frame(void);        
         void append_current_frame_to_file(std::string);
+
 };
 
 //resets file to the first frame
@@ -75,6 +80,15 @@ void TrajectoryIterator::reset() {
 void TrajectoryIterator::close() {
     dumpFile_.close();
 }
+
+//Reads string before it is cast as a float to make sure it is a float
+bool TrajectoryIterator::isFloat( std::string myString ) {
+	std::istringstream iss(myString);
+	float f;
+	iss >> std::noskipws >> f; //noskipws considers leading whitespace invalid
+	return iss.eof() && !iss.fail();
+}	
+
 //Function that loads the specified dump file
 void TrajectoryIterator::load_dump(const char *fName) {
     //Open the file here and make sure it exists
@@ -211,6 +225,21 @@ void TrajectoryIterator::previous_frame(void) {
     
 };
 
+//This checks to see if the trajectory has become in any way corrupted
+bool TrajectoryIterator::check_crash(std::string myString) {
+    std::vector<std::string> l;
+	split(myString,' ',l); 
+	for(size_t j=1; j<l.size(); j++) {
+		if(!isFloat(l[j])) {
+			std::cerr << "Error! System must have crashed at timestep: " <<timestep_<<std::endl;
+			crash_ = true;
+			return true;
+		}
+	}
+	crash_ = false;
+	return false;
+}
+
 //Return the coordinates as a vector of vectors
 //FIXME I dont like the double parsing of the file when coords and quat are gotten, when next frame is called, I think internal vectors should be populated for type, coord, quat
 //FIXME then the get_coord will only copy that data over?, or send a pointer to the TrajectoryIterator object?
@@ -231,21 +260,28 @@ std::vector<std::vector<double>> TrajectoryIterator::get_coord(void) {
 
     int index = 0;
     int type;
-    double x[3];
+    double x[3] = {0,0,0};
     std::string line;
+
     for(size_t i=0; i<numAtoms_; i++) {
         std::getline(dumpFile_,line);
         if (!line.compare("")){
           std::cerr << "Error! Line is empty while reading coords, and it shouldn't be!" << std::endl;
           exit(1);
         }
-        std::stringstream sin(line);
-        sin >> index >> type;
-        index -= 1;
-        for(size_t j=0; j<3; j++) {
-            sin >> x[j];
-            atom_pos[index][j] = x[j];
-        }
+		if (!check_crash(line)) {
+			//Check that the positions are floats
+			std::stringstream sin(line);
+			sin >> index >> type;
+			index -= 1;
+			for(size_t j=0; j<3; j++) {
+				sin >> x[j];
+				atom_pos[index][j] = x[j]; 
+			}
+		}
+		else {
+			return atom_pos;
+		}
     }
     return atom_pos;
 };
@@ -276,14 +312,19 @@ std::vector<std::vector<double>> TrajectoryIterator::get_quat() {
           std::cerr << "Error! Line is empty while reading quats, and it shouldn't be!" << std::endl;
           exit(1);
         }
-        std::stringstream sin(line);
-        sin >> index >> type;
-        index -= 1;
-        for(size_t j=0; j<3; j++) {sin >> x[j];}
-        for(size_t j=0; j<4; j++) {
-            sin >> q[j];
-            atom_quat[index][j] = q[j];
-        }
+		if (!check_crash(line)) {
+			std::stringstream sin(line);
+			sin >> index >> type;
+			index -= 1;
+			for(size_t j=0; j<3; j++) {sin >> x[j];}
+			for(size_t j=0; j<4; j++) {
+				sin >> q[j];
+				atom_quat[index][j] = q[j];
+			}
+		}
+		else {
+			return atom_quat;
+		}
     }
     return atom_quat;
 };
@@ -418,3 +459,6 @@ int TrajectoryIterator::get_current_natoms(){
 void TrajectoryIterator::clear_file_errors(){
     dumpFile_.clear();
 } 
+bool TrajectoryIterator::get_crash(){
+	return crash_;
+}

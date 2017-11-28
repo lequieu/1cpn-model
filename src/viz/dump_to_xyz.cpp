@@ -146,6 +146,12 @@ int main(int argc, char**argv){
         //The actual functions from the parser
         atoms = parser.get_coord();
         quats = parser.get_quat();
+        if(parser.get_crash()) {
+            parser.next_frame();
+            atoms = parser.get_coord();
+            quats = parser.get_quat();
+            i++;
+        }
         vects_f = parser.get_vect(quats,'f');
         vects_u = parser.get_vect(quats,'u');
         //Make sure to move to the next frame
