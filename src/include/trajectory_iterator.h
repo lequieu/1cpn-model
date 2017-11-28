@@ -312,19 +312,19 @@ std::vector<std::vector<double>> TrajectoryIterator::get_quat() {
           std::cerr << "Error! Line is empty while reading quats, and it shouldn't be!" << std::endl;
           exit(1);
         }
-		if (!check_crash(line)) {
-			std::stringstream sin(line);
-			sin >> index >> type;
-			index -= 1;
-			for(size_t j=0; j<3; j++) {sin >> x[j];}
-			for(size_t j=0; j<4; j++) {
-				sin >> q[j];
-				atom_quat[index][j] = q[j];
-			}
-		}
-		else {
-			return atom_quat;
-		}
+        if (!crash_) {
+            std::stringstream sin(line);
+            sin >> index >> type;
+            index -= 1;
+            for(size_t j=0; j<3; j++) {sin >> x[j];}
+            for(size_t j=0; j<4; j++) {
+                sin >> q[j];
+                atom_quat[index][j] = q[j];
+            }
+        }
+        else {
+            return atom_quat;
+        }
     }
     return atom_quat;
 };
@@ -411,30 +411,31 @@ void TrajectoryIterator::append_current_frame_to_file(std::string filename){
     //Set the point for the input file
     //dumpFile_.seekg(pos_);
 
-    std::ofstream file(filename, std::ofstream::app); //FIXME what flags?
-    file << "ITEM: TIMESTEP" << std::endl;
-    file << timestep_ << std::endl;
-    file << "ITEM: NUMBER OF ATOMS" << std::endl;
-    file << numAtoms_ << std::endl;
-    file << "ITEM: BOX BOUNDS pp pp pp" << std::endl;
-    file << boxDim_[0] << " " << boxDim_[1] << std::endl;
-    file << boxDim_[2] << " " << boxDim_[3] << std::endl;
-    file << boxDim_[4] << " " << boxDim_[5] << std::endl;
-    file << "ITEM: ATOMS id type x y z c_q[1] c_q[2] c_q[3] c_q[4]" << std::endl;
-    std::vector<int> types;
-    std::vector<std::vector<double>> atoms;
-    std::vector<std::vector<double>> quats;
-    atoms = get_coord();
-    quats = get_quat();
-    types = get_type();
-    for (int i = 0; i < numAtoms_; i++){
-        file << i+1 << " " << types[i] << " ";
-        file << atoms[i][0] << " " << atoms[i][1] << " " << atoms[i][2] << " ";
-        file << quats[i][0] << " " << quats[i][1] << " " << quats[i][2] << " " << quats[i][3];
-        file << std::endl;
+    if(!crash_) {
+        std::ofstream file(filename, std::ofstream::app); //FIXME what flags?
+        file << "ITEM: TIMESTEP" << std::endl;
+        file << timestep_ << std::endl;
+        file << "ITEM: NUMBER OF ATOMS" << std::endl;
+        file << numAtoms_ << std::endl;
+        file << "ITEM: BOX BOUNDS pp pp pp" << std::endl;
+        file << boxDim_[0] << " " << boxDim_[1] << std::endl;
+        file << boxDim_[2] << " " << boxDim_[3] << std::endl;
+        file << boxDim_[4] << " " << boxDim_[5] << std::endl;
+        file << "ITEM: ATOMS id type x y z c_q[1] c_q[2] c_q[3] c_q[4]" << std::endl;
+        std::vector<int> types;
+        std::vector<std::vector<double>> atoms;
+        std::vector<std::vector<double>> quats;
+        atoms = get_coord();
+        quats = get_quat();
+        types = get_type();
+        for (int i = 0; i < numAtoms_; i++){
+            file << i+1 << " " << types[i] << " ";
+            file << atoms[i][0] << " " << atoms[i][1] << " " << atoms[i][2] << " ";
+            file << quats[i][0] << " " << quats[i][1] << " " << quats[i][2] << " " << quats[i][3];
+            file << std::endl;
+        }
+        file.close();
     }
-    file.close();
-
 }
 
 /*
