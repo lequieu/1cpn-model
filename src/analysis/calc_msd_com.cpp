@@ -95,6 +95,15 @@ int main(int argc, char**argv){
           //The actual functions from the parser
           atoms = parser.get_coord();
           quats = parser.get_quat();
+
+          // Check for a crash
+          if(parser.get_crash()) {
+             parser.next_frame();
+             atoms = parser.get_coord();
+             quats = parser.get_quat();
+             i++;
+          }
+
           vects_f = parser.get_vect(quats,'f');
           vects_u = parser.get_vect(quats,'u');
           vects_v = parser.get_vect(quats,'u');

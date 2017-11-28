@@ -79,6 +79,12 @@ int main(int argc, char**argv){
         t = parser.get_current_timestep();
         atoms = parser.get_coord();
         quats = parser.get_quat();
+        if(parser.get_crash()) {
+            parser.next_frame();
+            atoms = parser.get_coord();
+            quats = parser.get_quat();
+            i++;
+        }
         vects_f = parser.get_vect(quats,'f');
         box_dim = parser.get_boxDim();
 
