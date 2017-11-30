@@ -248,7 +248,7 @@ bool TrajectoryIterator::check_crash(std::string myString) {
 	split(myString,' ',l); 
 	for(size_t j=1; j<l.size(); j++) {
 		if(!isFloat(l[j])) {
-			std::cerr << "Error! System must have crashed at timestep: " <<timestep_<<std::endl;
+			std::cerr << "Warning! Read error occurred at timestep: " <<timestep_<<std::endl;
 			crash_ = true;
 			return true;
 		}
