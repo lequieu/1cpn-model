@@ -69,8 +69,6 @@ int main(int argc, char**argv){
 
     std::vector<int> atom_types;
     std::vector<float> box_dim;
-    std::vector<std::vector<double>> atoms;
-    std::vector<std::vector<double>> quats;
     std::vector<std::vector<double>> vects_f;
     std::vector<std::vector<double>> vects_v;
     std::vector<std::vector<double>> vects_u;
@@ -130,21 +128,9 @@ int main(int argc, char**argv){
           continue;
         }
 
-
-        //The actual functions from the parser
-        atoms = parser.get_coord();
-        quats = parser.get_quat();
-
-        // Check for a crash
-        if(parser.get_crash()) {
-            parser.next_frame();
-            atoms = parser.get_coord();
-            quats = parser.get_quat();
-            i++;
-        }
-        vects_f = parser.get_vect(quats,'f');
+        vects_f = parser.get_vect('f');
         //vects_v = parser.get_vect(quats,'v');
-        vects_u = parser.get_vect(quats,'u');
+        vects_u = parser.get_vect('u');
     
         double lpdot,ltdot, bin, normA, normB;
         double dx,dy,dz,dr2;
@@ -154,9 +140,9 @@ int main(int argc, char**argv){
         std::vector<double> vectD(3);
         for (size_t j = nignore; j<natoms-nignore-1; j++){
           //vect A bond vector from j to j+1
-          vectA[0] = atoms[j+1][0] - atoms[j][0];
-          vectA[1] = atoms[j+1][1] - atoms[j][1];
-          vectA[2] = atoms[j+1][2] - atoms[j][2];
+          vectA[0] = parser.coords_[j+1][0] - parser.coords_[j][0];
+          vectA[1] = parser.coords_[j+1][1] - parser.coords_[j][1];
+          vectA[2] = parser.coords_[j+1][2] - parser.coords_[j][2];
           normA = sqrt(vectA[0]*vectA[0] + vectA[1]*vectA[1] + vectA[2]*vectA[2]);
           vectA[0] /= normA;
           vectA[1] /= normA;
@@ -173,9 +159,9 @@ int main(int argc, char**argv){
 
           for (size_t k = j; k<natoms-nignore-1; k++){
             //vect B bond vector from k to k+1
-            vectB[0] = atoms[k+1][0] - atoms[k][0]; 
-            vectB[1] = atoms[k+1][1] - atoms[k][1]; 
-            vectB[2] = atoms[k+1][2] - atoms[k][2]; 
+            vectB[0] = parser.coords_[k+1][0] - parser.coords_[k][0]; 
+            vectB[1] = parser.coords_[k+1][1] - parser.coords_[k][1]; 
+            vectB[2] = parser.coords_[k+1][2] - parser.coords_[k][2]; 
             normB = sqrt(vectB[0]*vectB[0] + vectB[1]*vectB[1] + vectB[2]*vectB[2]);
             vectB[0] /= normB;
             vectB[1] /= normB;
@@ -186,9 +172,9 @@ int main(int argc, char**argv){
             if (lpdot <-1) lpdot =-1;
 
             //r2 for lp
-            dx = atoms[k][0] - atoms[j][0];
-            dy = atoms[k][1] - atoms[j][1];
-            dz = atoms[k][2] - atoms[j][2];
+            dx = parser.coords_[k][0] - parser.coords_[j][0];
+            dy = parser.coords_[k][1] - parser.coords_[j][1];
+            dz = parser.coords_[k][2] - parser.coords_[j][2];
             dr2 = dx*dx + dy*dy + dz*dz;
 
             //vect D f vector from j 

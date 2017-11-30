@@ -37,8 +37,6 @@ int main(int argc, char**argv){
     TrajectoryIterator parser;
     std::vector<int> atom_types;
     std::vector<float> box_dim;
-    std::vector<std::vector<double>> atoms;
-    std::vector<std::vector<double>> quats;
     std::vector<std::vector<double>> vects_f;
     std::vector<std::vector<double>> vects_v;
     std::vector<std::vector<double>> vects_u;
@@ -87,7 +85,7 @@ int main(int argc, char**argv){
         int type,prevtype;
 
         //The actual functions from the parser
-        atoms = parser.get_coord();
+        parser.next_frame();
         //quats = parser.get_quat();
 
         //Make sure to move to the next frame
@@ -100,8 +98,8 @@ int main(int argc, char**argv){
                         
             std::vector<double> vectA(3);
             std::vector<double> vectB(3);
-            vectA = atoms[distinfo[j].sitea-1]; 
-            vectB = atoms[distinfo[j].siteb-1]; 
+            vectA = parser.coords_[distinfo[j].sitea-1]; 
+            vectB = parser.coords_[distinfo[j].siteb-1]; 
             
             dx = vectB[0] - vectA[0];
             dy = vectB[1] - vectA[1];
@@ -113,7 +111,6 @@ int main(int argc, char**argv){
         } 
         ofile << std::endl;
 
-        parser.next_frame();
         if (firstframe) firstframe = false;
     }  
     ofile.close();

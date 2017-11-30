@@ -41,8 +41,6 @@ int main(int argc, char**argv){
     TrajectoryIterator parser;
     std::vector<int> atom_types;
     std::vector<float> box_dim;
-    std::vector<std::vector<double>> atoms;
-    std::vector<std::vector<double>> quats;
     std::vector<std::vector<double>> vects_f;
     std::vector<std::vector<double>> vects_v;
     std::vector<std::vector<double>> vects_u;
@@ -93,20 +91,11 @@ int main(int argc, char**argv){
           int type,prevtype;
 
           //The actual functions from the parser
-          atoms = parser.get_coord();
-          quats = parser.get_quat();
+          parser.next_frame();
 
-          // Check for a crash
-          if(parser.get_crash()) {
-             parser.next_frame();
-             atoms = parser.get_coord();
-             quats = parser.get_quat();
-             i++;
-          }
-
-          vects_f = parser.get_vect(quats,'f');
-          vects_u = parser.get_vect(quats,'u');
-          vects_v = parser.get_vect(quats,'u');
+          vects_f = parser.get_vect('f');
+          vects_u = parser.get_vect('u');
+          vects_v = parser.get_vect('v');
           
           //calculate COM
           double com[3], totalmass;
@@ -116,9 +105,9 @@ int main(int argc, char**argv){
           totalmass = 0;
           for (size_t iatom=0; iatom < natom; iatom++){
             type = atom_types[iatom]-1;
-            com[0] += atoms[iatom][0]*masses[type];
-            com[1] += atoms[iatom][1]*masses[type];
-            com[2] += atoms[iatom][2]*masses[type];
+            com[0] += parser.coords_[iatom][0]*masses[type];
+            com[1] += parser.coords_[iatom][1]*masses[type];
+            com[2] += parser.coords_[iatom][2]*masses[type];
             totalmass += masses[type];
           }
           com[0] /= totalmass;
@@ -136,7 +125,6 @@ int main(int argc, char**argv){
           dz = com[2]- com0[2];
           sumsqdisp[i] += (dx*dx + dy*dy + dz*dz);
 
-          parser.next_frame();
           if (firstframe) firstframe = false;
       }  
 

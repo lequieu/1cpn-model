@@ -43,8 +43,6 @@ int main(int argc, char**argv){
     TrajectoryIterator parser;
     std::vector<int> atom_types;
     std::vector<float> box_dim;
-    std::vector<std::vector<double>> atoms;
-    std::vector<std::vector<double>> quats;
     std::vector<std::vector<double>> vects_f;
     std::vector<std::vector<double>> vects_v;
     std::vector<std::vector<double>> vects_u;
@@ -101,17 +99,10 @@ int main(int argc, char**argv){
         int type,prevtype;
 
         //The actual functions from the parser
-        atoms = parser.get_coord();
-        quats = parser.get_quat();
-        if(parser.get_crash()) {
-            parser.next_frame();
-            atoms = parser.get_coord();
-            quats = parser.get_quat();
-            i++;
-        }
-        vects_f = parser.get_vect(quats,'f');
-        vects_v = parser.get_vect(quats,'v');
-        vects_u = parser.get_vect(quats,'u');
+        parser.next_frame();
+        vects_f = parser.get_vect('f');
+        vects_v = parser.get_vect('v');
+        vects_u = parser.get_vect('u');
         //Make sure to move to the next frame
         //Since everything after this is processing the data we can put the next frame option here
 
@@ -142,7 +133,6 @@ int main(int argc, char**argv){
         } 
         ofile << std::endl;
 
-        parser.next_frame();
         if (firstframe) firstframe = false;
     }  
     ofile.close();

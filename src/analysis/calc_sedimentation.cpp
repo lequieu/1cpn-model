@@ -35,8 +35,6 @@ int main(int argc, char**argv){
 
     std::vector<int> atom_types;
     std::vector<float> box_dim;
-    std::vector<std::vector<double>> atoms;
-    std::vector<std::vector<double>> quats;
     std::vector<std::vector<double>> vects_f;
     std::vector<std::vector<double>> vects_v;
     std::vector<std::vector<double>> vects_u;
@@ -54,23 +52,12 @@ int main(int argc, char**argv){
     //Loop through the dump file using the parser
     //for(size_t i=0; i<timestep; i++) {
     for(size_t i=0; i<ntimestep; i++) {
-        
+       
+        parser.next_frame();
 
-        //The actual functions from the parser
-        atoms = parser.get_coord();
-        quats = parser.get_quat();
-
-        // Check for a crash
-        if(parser.get_crash()) {
-            parser.next_frame();
-            atoms = parser.get_coord();
-            quats = parser.get_quat();
-            i++;
-        }
-
-        vects_f = parser.get_vect(quats,'f');
+        vects_f = parser.get_vect('f');
         //vects_v = parser.get_vect(quats,'v');
-        vects_u = parser.get_vect(quats,'u');
+        vects_u = parser.get_vect('u');
         t = parser.get_current_timestep();
 
         if (firstframe){
@@ -92,9 +79,9 @@ int main(int argc, char**argv){
           nuclj = nucl_ids[j];
           for(size_t k=j+1;k<nnucl;k++){
             nuclk = nucl_ids[k];
-            dx = atoms[nuclk][0] - atoms[nuclj][0];
-            dy = atoms[nuclk][1] - atoms[nuclj][1];
-            dz = atoms[nuclk][2] - atoms[nuclj][2];
+            dx = parser.coords_[nuclk][0] - parser.coords_[nuclj][0];
+            dy = parser.coords_[nuclk][1] - parser.coords_[nuclj][1];
+            dz = parser.coords_[nuclk][2] - parser.coords_[nuclj][2];
             dr = sqrt(dx*dx+dy*dy+dz*dz);
             sum += 1.0/dr;
           }
@@ -102,7 +89,6 @@ int main(int argc, char**argv){
         S20w = S1 * (1 + 2.* Rnucl / nnucl * sum);
         ofile << t<< "\t" <<S20w << "\t" << sum << std::endl;
     
-        parser.next_frame();
         if (firstframe) firstframe = false;
     }  
 

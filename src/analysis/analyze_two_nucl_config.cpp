@@ -36,8 +36,6 @@ int main(int argc, char**argv){
 
     std::vector<int> atom_types;
     std::vector<float> box_dim;
-    std::vector<std::vector<double>> atoms;
-    std::vector<std::vector<double>> quats;
     std::vector<std::vector<double>> vects_f;
     std::vector<std::vector<double>> vects_v;
     std::vector<std::vector<double>> vects_u;
@@ -76,25 +74,18 @@ int main(int argc, char**argv){
 
         }
         //The actual functions from the parser
+        parser.next_frame();
         t = parser.get_current_timestep();
-        atoms = parser.get_coord();
-        quats = parser.get_quat();
-        if(parser.get_crash()) {
-            parser.next_frame();
-            atoms = parser.get_coord();
-            quats = parser.get_quat();
-            i++;
-        }
-        vects_f = parser.get_vect(quats,'f');
+        vects_f = parser.get_vect('f');
         box_dim = parser.get_boxDim();
 
         
         fA = vects_f[nuclA];
         fB = vects_f[nuclB];
         
-        r[0] = atoms[nuclB][0] - atoms[nuclA][0];
-        r[1] = atoms[nuclB][1] - atoms[nuclA][1];
-        r[2] = atoms[nuclB][2] - atoms[nuclA][2];
+        r[0] = parser.coords_[nuclB][0] - parser.coords_[nuclA][0];
+        r[1] = parser.coords_[nuclB][1] - parser.coords_[nuclA][1];
+        r[2] = parser.coords_[nuclB][2] - parser.coords_[nuclA][2];
 
         //apply pbc
         halfbox[0] = 0.5* (box_dim[1] - box_dim[0]);
@@ -145,7 +136,6 @@ int main(int argc, char**argv){
           count_in_r_region[1]++;
         }
 
-        parser.next_frame();
         if (firstframe) firstframe = false;
     }  
     ofile.close();
