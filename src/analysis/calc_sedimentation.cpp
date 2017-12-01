@@ -33,13 +33,11 @@ int main(int argc, char**argv){
     TrajectoryIterator parser;
     parser.load_dump(dumpfilename.c_str());
 
-    std::vector<int> atom_types;
     std::vector<float> box_dim;
-    std::vector<std::vector<double>> vects_f;
-    std::vector<std::vector<double>> vects_v;
-    std::vector<std::vector<double>> vects_u;
+    //std::vector<std::vector<double>> vects_f;
+    //std::vector<std::vector<double>> vects_v;
+    //std::vector<std::vector<double>> vects_u;
     natoms = parser.get_numAtoms();
-    atom_types = parser.get_type(); 
     ntimestep = parser.get_numFrames();
 
     int nnucl; 
@@ -55,16 +53,16 @@ int main(int argc, char**argv){
        
         parser.next_frame();
 
-        vects_f = parser.get_vect('f');
+        //vects_f = parser.get_vect('f');
         //vects_v = parser.get_vect(quats,'v');
-        vects_u = parser.get_vect('u');
+        //vects_u = parser.get_vect('u');
         t = parser.get_current_timestep();
 
         if (firstframe){
             nnucl = 0;
             for (size_t j=0;j<natoms;j++){
-              if (atom_types[j] == 1){ //is nucleosome
-                nucl_ids.push_back(j);
+              if (parser.types_[j] == 1){ //is nucleosome
+                nucl_ids.push_back(j+1);
                 nnucl++;
               }
             }
@@ -79,10 +77,11 @@ int main(int argc, char**argv){
           nuclj = nucl_ids[j];
           for(size_t k=j+1;k<nnucl;k++){
             nuclk = nucl_ids[k];
-            dx = parser.coords_[nuclk][0] - parser.coords_[nuclj][0];
-            dy = parser.coords_[nuclk][1] - parser.coords_[nuclj][1];
-            dz = parser.coords_[nuclk][2] - parser.coords_[nuclj][2];
-            dr = sqrt(dx*dx+dy*dy+dz*dz);
+            dr = parser.get_dist(nuclk,nuclj);
+            //dx = parser.coords_[nuclk][0] - parser.coords_[nuclj][0];
+            //dy = parser.coords_[nuclk][1] - parser.coords_[nuclj][1];
+            //dz = parser.coords_[nuclk][2] - parser.coords_[nuclj][2];
+            //dr = sqrt(dx*dx+dy*dy+dz*dz);
             sum += 1.0/dr;
           }
         }

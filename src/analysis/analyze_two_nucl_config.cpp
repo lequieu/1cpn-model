@@ -34,13 +34,11 @@ int main(int argc, char**argv){
     TrajectoryIterator parser;
     parser.load_dump(dumpfilename.c_str());
 
-    std::vector<int> atom_types;
     std::vector<float> box_dim;
     std::vector<std::vector<double>> vects_f;
     std::vector<std::vector<double>> vects_v;
     std::vector<std::vector<double>> vects_u;
     natoms = parser.get_numAtoms();
-    atom_types = parser.get_type(); 
     ntimestep = parser.get_numFrames();
 
     double halfbox[3];
@@ -61,7 +59,7 @@ int main(int argc, char**argv){
         if (firstframe){
           int nnucl = 0;
           for (size_t j=0; j<natoms; j++){
-            if (atom_types[j] == 1){
+            if (parser.types_[j] == 1){
               if (nnucl == 0) nuclA = j;
               else if (nnucl == 1) nuclB = j;
               else{

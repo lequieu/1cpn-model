@@ -25,12 +25,6 @@ int main(int argc, char**argv){
     std::string dumpfilename;
     dumpfilename = argv[1];
 
-        //MASSES are hardcoded!
-    std::vector<double> masses(3+1);
-    masses[1] = 196666.0000;
-    masses[2] = 1950.000000;  
-    masses[3] = 19500.00000;  
-
     std::string filename;
      
     long long t;
@@ -40,15 +34,10 @@ int main(int argc, char**argv){
     //Set up all vectors needed for the trajectory parser class
     TrajectoryIterator parser;
     parser.load_dump(dumpfilename.c_str());
-    std::vector<int> atom_types;
     std::vector<float> box_dim;
-    std::vector<std::vector<double>> vects_f;
-    std::vector<std::vector<double>> vects_v;
-    std::vector<std::vector<double>> vects_u;
       
     //Get the number of atoms
     natoms = parser.get_numAtoms();
-    atom_types = parser.get_type(); 
     box_dim = parser.get_boxDim();
     nframes = parser.get_numFrames();
 
@@ -75,22 +64,8 @@ int main(int argc, char**argv){
         //vects_v = parser.get_vect(quats,'v');
         
         //calculate COM
-        double com[3], totalmass;
-        int type;
-        com[0] = 0.0;
-        com[1] = 0.0;
-        com[2] = 0.0;
-        totalmass = 0;
-        for (size_t iatom=0; iatom < natoms; iatom++){
-          type = atom_types[iatom]-1;
-          com[0] += parser.coords_[iatom][0]*masses[type];
-          com[1] += parser.coords_[iatom][1]*masses[type];
-          com[2] += parser.coords_[iatom][2]*masses[type];
-          totalmass += masses[type];
-        }
-        com[0] /= totalmass;
-        com[1] /= totalmass;
-        com[2] /= totalmass;
+        std::vector<double> com;
+        com = parser.get_com();
         
         ofile << t << " " << com[0] << " " << com[1] << " " << com[2] << std::endl;
         

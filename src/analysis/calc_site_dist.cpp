@@ -35,7 +35,6 @@ int main(int argc, char**argv){
 
     //Set up all vectors needed for the trajectory parser class
     TrajectoryIterator parser;
-    std::vector<int> atom_types;
     std::vector<float> box_dim;
     std::vector<std::vector<double>> vects_f;
     std::vector<std::vector<double>> vects_v;
@@ -46,8 +45,6 @@ int main(int argc, char**argv){
     //Get the number of frames
     timestep = parser.get_numFrames();
     std::cout<<timestep<<std::endl;
-    //Get the vector for the types of atoms
-    atom_types = parser.get_type(); 
     //Get the number of atoms
     natom = parser.get_numAtoms();
     box_dim = parser.get_boxDim();
@@ -95,16 +92,17 @@ int main(int argc, char**argv){
     
         double dx,dy,dz,dist,angle;
         for (size_t j = 0; j<ndist;j++){
-                        
-            std::vector<double> vectA(3);
-            std::vector<double> vectB(3);
-            vectA = parser.coords_[distinfo[j].sitea-1]; 
-            vectB = parser.coords_[distinfo[j].siteb-1]; 
-            
-            dx = vectB[0] - vectA[0];
-            dy = vectB[1] - vectA[1];
-            dz = vectB[2] - vectA[2];
-            dist = sqrt(dx*dx + dy*dy + dz*dz);
+                       
+            dist = parser.get_dist(distinfo[j].siteb,distinfo[j].sitea);
+            //std::vector<double> vectA(3);
+            //std::vector<double> vectB(3);
+            //vectA = parser.coords_[distinfo[j].sitea-1]; 
+            //vectB = parser.coords_[distinfo[j].siteb-1]; 
+            //
+            //dx = vectB[0] - vectA[0];
+            //dy = vectB[1] - vectA[1];
+            //dz = vectB[2] - vectA[2];
+            //dist = sqrt(dx*dx + dy*dy + dz*dz);
             distinfo[j].dist = dist;
 
             ofile << distinfo[j].dist << "\t";

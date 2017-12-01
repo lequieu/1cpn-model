@@ -53,11 +53,16 @@ class TrajectoryIterator {
         void reset();
         void load_dump(const char *);
         void get_info(void);
+        void get_type(void);
         std::vector<std::vector<double>> coords_;
         std::vector<std::vector<double>> quats_;
+        std::vector<int> types_;
         std::vector<std::vector<double>> get_vect(char);
-        std::vector<int> get_type(void);
         std::vector<float> get_boxDim(void);
+        std::vector<double> get_com(void);
+        std::vector<double> get_distVect(int,int);
+        double get_dist(int,int);
+        double get_angleSites(int,int,int);
         long long get_current_timestep(void); 
         int get_current_natoms(void); 
         int get_numAtoms(void);
@@ -199,6 +204,7 @@ int TrajectoryIterator::next_frame(void) {
             pos_ = dumpFile_.tellg();
             //Populate the internal vectors here if the system hasn't crashed
             if(firstFrame_) {
+                get_type();
                 firstFrame_ = false;
                 return 0;
             }
@@ -346,15 +352,13 @@ std::vector<std::vector<double>> TrajectoryIterator::get_vect(char type) {
 
 //Get the type of each of the atoms
 //This should only really be called once
-std::vector<int> TrajectoryIterator::get_type() {
-    std::vector<int> atom_type;
-
+void TrajectoryIterator::get_type() {
     if (numAtoms_ <= 0){
         std::cout << "Error! Trying to get_type() but numAtoms <= 0. Could the traj file be empty?" << std::endl;
         exit(1);
     }
     //Initialize and size the vector
-    atom_type.resize(numAtoms_);
+    types_.resize(numAtoms_);
 
     //Set the point for the input file
     dumpFile_.seekg(pos_);
@@ -367,9 +371,85 @@ std::vector<int> TrajectoryIterator::get_type() {
         std::stringstream sin(line);
         sin >> index >> type;
         index -= 1;
-        atom_type[index] = type;
+        types_[index] = type;
     }
-    return atom_type;
+    return;
+};
+
+std::vector<double> TrajectoryIterator::get_com() {
+    std::vector<double> com(3);
+    std::vector<double> masses(3);
+    
+    //The masses are hard-coded here for now
+    masses[0] = 196666.0000;
+    masses[1] = 1950.000000;  
+    masses[2] = 19500.00000;  
+
+    int type;
+    com[0] = 0.0;
+    com[1] = 0.0;
+    com[2] = 0.0;
+    double totalmass = 0;
+    for (size_t iatom=0; iatom < numAtoms_; iatom++){
+        type = types_[iatom]-1;
+        com[0] += coords_[iatom][0]*masses[type];
+        com[1] += coords_[iatom][1]*masses[type];
+        com[2] += coords_[iatom][2]*masses[type];
+        totalmass += masses[type];
+    }
+    com[0] /= totalmass;
+    com[1] /= totalmass;
+    com[2] /= totalmass;
+
+    return com;
+};
+
+// Returns the Euclidean distance between siteA and siteB
+// Note: the sites that are input are the same as that of the in.lammps file!
+double TrajectoryIterator::get_dist(int siteA, int siteB) {
+    double dist = 0.0, dx = 0.0;
+    for (size_t i = 0; i < 3; i++) {
+        dx = coords_[siteA-1][i]-coords_[siteB-1][i];
+        dist += dx*dx;
+    }
+    return sqrt(dist);
+};
+
+// Returns the angle site ABC (B is the middle site)
+// Note: the sites that are input are the same as that of the in.lammps file!
+double TrajectoryIterator::get_angleSites(int siteA, int siteB, int siteC) {
+    double angle = 0.0, magA = 0, magB = 0; 
+    std::vector<double> vectA;
+    std::vector<double> vectB;
+
+    vectA = get_distVect(siteA,siteB);
+    vectB = get_distVect(siteB,siteC);
+    magA = get_dist(siteA,siteB);
+    magB = get_dist(siteB,siteC);
+
+    for (size_t i = 0; i < 3; i++) {
+        vectA[i] /= magA;
+        vectB[i] /= magB;
+        angle += vectA[i]*vectB[i];
+    }
+
+    if (angle > 1) angle = 1;
+    if (angle <-1) angle =-1;
+
+    return acosf(angle)*180./M_PI;
+};
+
+// Returns the vector between siteA and siteB
+// Note: the tail of the vector begins at siteB and the head is at siteA!
+// Note: the sites that are input are the same as that of the in.lammps file!
+std::vector<double> TrajectoryIterator::get_distVect(int siteA, int siteB) {
+    std::vector<double> distVect(3);
+    double dx = 0;
+    for (size_t i = 0; i < 3; i++) {
+        dx = coords_[siteA-1][i]-coords_[siteB-1][i];
+        distVect[i] = dx;
+    }
+    return distVect;
 };
 
 int TrajectoryIterator::get_numAtoms() {
@@ -378,7 +458,7 @@ int TrajectoryIterator::get_numAtoms() {
 
 std::vector<float> TrajectoryIterator::get_boxDim() {
     return boxDim_;
-}
+};
 void TrajectoryIterator::append_current_frame_to_file(std::string filename){
     //Set the point for the input file
     //dumpFile_.seekg(pos_);

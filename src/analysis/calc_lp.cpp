@@ -67,13 +67,11 @@ int main(int argc, char**argv){
     TrajectoryIterator parser;
     parser.load_dump(dumpfilename.c_str());
 
-    std::vector<int> atom_types;
     std::vector<float> box_dim;
     std::vector<std::vector<double>> vects_f;
     std::vector<std::vector<double>> vects_v;
     std::vector<std::vector<double>> vects_u;
     natoms = parser.get_numAtoms();
-    atom_types = parser.get_type(); 
     timestep = parser.get_numFrames();
 
     if ((endframe == -1) || (endframe > timestep)){
@@ -112,7 +110,7 @@ int main(int argc, char**argv){
 
     //make sure all atoms are dna type
     for (size_t j = 0; j<natoms;j++){
-        if (atom_types[j] != 2){
+        if (parser.types_[j] != 2){
             std::cerr << "Error! All atom_types must be 2 (ie DNA) to compute lp" <<std::endl;
             exit(1);
         }
