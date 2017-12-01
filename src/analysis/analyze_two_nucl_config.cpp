@@ -80,10 +80,11 @@ int main(int argc, char**argv){
         
         fA = vects_f[nuclA];
         fB = vects_f[nuclB];
-        
-        r[0] = parser.coords_[nuclB][0] - parser.coords_[nuclA][0];
-        r[1] = parser.coords_[nuclB][1] - parser.coords_[nuclA][1];
-        r[2] = parser.coords_[nuclB][2] - parser.coords_[nuclA][2];
+       
+        r = parser.get_distVect(nuclB,nuclA);
+        //r[0] = parser.coords_[nuclB][0] - parser.coords_[nuclA][0];
+        //r[1] = parser.coords_[nuclB][1] - parser.coords_[nuclA][1];
+        //r[2] = parser.coords_[nuclB][2] - parser.coords_[nuclA][2];
 
         //apply pbc
         halfbox[0] = 0.5* (box_dim[1] - box_dim[0]);
