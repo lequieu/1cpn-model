@@ -40,9 +40,12 @@ int main(int argc, char**argv){
     natoms = parser.get_numAtoms();
     ntimestep = parser.get_numFrames();
 
+    double halfbox[3];
+
     int nnucl; 
     std::vector<double> gyr_tensor(3); //We are only going to evaluate the diagonals
     std::vector<double> com;
+    std::vector<double> r(3); //distance vector com-rsite dist
 
     bool firstframe = true;
     //Loop through the dump file using the parser
@@ -50,6 +53,7 @@ int main(int argc, char**argv){
     for(size_t i=0; i<ntimestep; i++) {
        
         parser.next_frame();
+        box_dim = parser.get_boxDim();
 
         //vects_f = parser.get_vect('f');
         //vects_v = parser.get_vect(quats,'v');
@@ -60,11 +64,21 @@ int main(int argc, char**argv){
         com = parser.get_com();
         double sumx=0,sumy=0,sumz=0;
 
+        //apply pbc
+        halfbox[0] = 0.5* (box_dim[1] - box_dim[0]);
+        halfbox[1] = 0.5* (box_dim[3] - box_dim[2]);
+        halfbox[2] = 0.5* (box_dim[5] - box_dim[4]);
+
         //evaluate the gyration tensor now
         for(size_t j=0;j<natoms-1;j++){
-          sumx += (parser.coords_[j][0] - com[0])*(parser.coords_[j][0] - com[0]);
-          sumy += (parser.coords_[j][1] - com[1])*(parser.coords_[j][1] - com[1]);
-          sumz += (parser.coords_[j][2] - com[2])*(parser.coords_[j][2] - com[2]);
+          for(size_t k =0; k<3; k++){
+            r[k] = parser.coords_[j][k]-com[k];
+            if (r[k] >  halfbox[k]) r[k] -= halfbox[k];
+            if (r[k] <- halfbox[k]) r[k] += halfbox[k];
+          }
+          sumx += r[0]*r[0];
+          sumy += r[1]*r[1];
+          sumz += r[2]*r[2];
           //dr = sqrt(dx*dx+dy*dy+dz*dz);
           //sum += 1.0/dr;
         }
