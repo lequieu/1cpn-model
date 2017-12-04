@@ -27,7 +27,7 @@ int main(int argc, char**argv){
 
     std::ofstream ofile;
     ofile.open(outfilename.c_str());
-    ofile << "# <timestep> <theta(s)>" << std::endl;
+    ofile << "# <timestep> <total nucl average angle>  <theta(s)> ....." << std::endl;
 
     //Set up all vectors needed for the trajectory parser class
     TrajectoryIterator parser;
@@ -59,7 +59,7 @@ int main(int argc, char**argv){
               }
             }
             //resize the angles array
-            angles.resize(nucl_ids.size()-2);
+            angles.resize(nucl_ids.size()-1);
         }
   
         //compute sedimentation coeff 
@@ -69,10 +69,16 @@ int main(int argc, char**argv){
           nuclj = nucl_ids[j-1];
           nuclk = nucl_ids[j];
           nucll = nucl_ids[j+1];
-          angles[j] = parser.get_angleSites(nuclj,nuclk,nucll);
+          angle = parser.get_angleSites(nuclj,nuclk,nucll);
+          angles[j] = angle;
+          sum += angle;
         }
+
+        //calculate the average angle of nucleosomes
+        sum *= 1.0/(nnucl-2.0);
+
         //write out the angles to the output file
-        ofile << t << "\t";
+        ofile << t << "\t" << sum << "\t";
         for(auto& angle : angles)
             ofile << angle << "\t";
         ofile << std::endl;
