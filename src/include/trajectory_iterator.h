@@ -34,6 +34,7 @@ class TrajectoryIterator {
         int numAtomsPrev_;              //prev numAtoms
         std::vector<float> boxDim_;     //initial boxDim
         std::vector<float> boxDimPrev_; //prev boxDim
+        stD::vector<float> halfBox_;
         std::streampos pos_;
         std::streampos posPrev_;
 		bool crash_ = false;   //Checks for a crash
@@ -61,6 +62,7 @@ class TrajectoryIterator {
         std::vector<float> get_boxDim(void);
         std::vector<double> get_com(void);
         std::vector<double> get_distVect(int,int);
+        double check_pbc(double,int);
         double get_dist(int,int);
         double get_angleSites(int,int,int);
         long long get_current_timestep(void); 
@@ -107,6 +109,7 @@ void TrajectoryIterator::load_dump(const char *fName) {
     //Size the boxdimensions to three dimensions
     boxDim_.resize(6);
     boxDimPrev_.resize(6);
+    halfBox_.resize(3);
 
     //Only store the number of atoms at the beginning.
     //This makes all useable loops of the form get_fxns->next_frame 
@@ -227,6 +230,7 @@ int TrajectoryIterator::next_frame(void) {
                 split(line,' ',l); 
                 boxDim_[2*i] = std::stof(l[0]);
                 boxDim_[2*i+1] = std::stof(l[1]);
+                halfBox_[i] = 0.5*(boxDim_[2*i+1]-boxDim_[2*i]);
             }
         }
     }
@@ -404,12 +408,18 @@ std::vector<double> TrajectoryIterator::get_com() {
     return com;
 };
 
+double TrajectoryIterator::check_pbc(double dist, int dim) {
+    if (dist > halfBox_[dim]) {return dist - halfBox_[dim];}
+    else if (dist < -halfBox_[dim]) {return dist + halfBox_[dim];}
+    else {return dist;}
+
 // Returns the Euclidean distance between siteA and siteB
 // Note: the sites that are input are the same as that of the in.lammps file!
 double TrajectoryIterator::get_dist(int siteA, int siteB) {
     double dist = 0.0, dx = 0.0;
     for (size_t i = 0; i < 3; i++) {
         dx = coords_[siteA-1][i]-coords_[siteB-1][i];
+        dx = check_pbc(dx,i);
         dist += dx*dx;
     }
     return sqrt(dist);
@@ -447,6 +457,7 @@ std::vector<double> TrajectoryIterator::get_distVect(int siteA, int siteB) {
     double dx = 0;
     for (size_t i = 0; i < 3; i++) {
         dx = coords_[siteA-1][i]-coords_[siteB-1][i];
+        dx = check_pbc(dx,i);
         distVect[i] = dx;
     }
     return distVect;
