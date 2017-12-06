@@ -34,7 +34,7 @@ class TrajectoryIterator {
         int numAtomsPrev_;              //prev numAtoms
         std::vector<float> boxDim_;     //initial boxDim
         std::vector<float> boxDimPrev_; //prev boxDim
-        stD::vector<float> halfBox_;
+        std::vector<float> halfBox_;
         std::streampos pos_;
         std::streampos posPrev_;
 		bool crash_ = false;   //Checks for a crash
@@ -412,6 +412,7 @@ double TrajectoryIterator::check_pbc(double dist, int dim) {
     if (dist > halfBox_[dim]) {return dist - halfBox_[dim];}
     else if (dist < -halfBox_[dim]) {return dist + halfBox_[dim];}
     else {return dist;}
+};
 
 // Returns the Euclidean distance between siteA and siteB
 // Note: the sites that are input are the same as that of the in.lammps file!
