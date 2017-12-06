@@ -58,8 +58,9 @@ int main(int argc, char**argv){
     for(size_t i=0; i<ntimestep; i++) {
         if (firstframe){
           int nnucl = 0;
+          std::vector<int> types = parser.get_types();
           for (size_t j=0; j<natoms; j++){
-            if (parser.types_[j] == 1){
+            if (types[j] == 1){
               if (nnucl == 0) nuclA = j;
               else if (nnucl == 1) nuclB = j;
               else{
@@ -82,21 +83,21 @@ int main(int argc, char**argv){
         fB = vects_f[nuclB];
        
         r = parser.get_distVect(nuclB,nuclA);
-        //r[0] = parser.coords_[nuclB][0] - parser.coords_[nuclA][0];
-        //r[1] = parser.coords_[nuclB][1] - parser.coords_[nuclA][1];
-        //r[2] = parser.coords_[nuclB][2] - parser.coords_[nuclA][2];
+        ////r[0] = parser.coords_[nuclB][0] - parser.coords_[nuclA][0];
+        ////r[1] = parser.coords_[nuclB][1] - parser.coords_[nuclA][1];
+        ////r[2] = parser.coords_[nuclB][2] - parser.coords_[nuclA][2];
 
-        //apply pbc
-        halfbox[0] = 0.5* (box_dim[1] - box_dim[0]);
-        halfbox[1] = 0.5* (box_dim[3] - box_dim[2]);
-        halfbox[2] = 0.5* (box_dim[5] - box_dim[4]);
+        ////apply pbc
+        //halfbox[0] = 0.5* (box_dim[1] - box_dim[0]);
+        //halfbox[1] = 0.5* (box_dim[3] - box_dim[2]);
+        //halfbox[2] = 0.5* (box_dim[5] - box_dim[4]);
 
-        if (r[0] >  halfbox[0]) r[0] -= halfbox[0]; 
-        if (r[0] <- halfbox[0]) r[0] += halfbox[0]; 
-        if (r[1] >  halfbox[1]) r[1] -= halfbox[1]; 
-        if (r[1] <- halfbox[1]) r[1] += halfbox[1]; 
-        if (r[2] >  halfbox[2]) r[2] -= halfbox[2]; 
-        if (r[2] <- halfbox[2]) r[2] += halfbox[2]; 
+        //if (r[0] >  halfbox[0]) r[0] -= halfbox[0]; 
+        //if (r[0] <- halfbox[0]) r[0] += halfbox[0]; 
+        //if (r[1] >  halfbox[1]) r[1] -= halfbox[1]; 
+        //if (r[1] <- halfbox[1]) r[1] += halfbox[1]; 
+        //if (r[2] >  halfbox[2]) r[2] -= halfbox[2]; 
+        //if (r[2] <- halfbox[2]) r[2] += halfbox[2]; 
 
         rnorm = sqrt(r[0]*r[0] + r[1]*r[1] + r[2]*r[2]);
         rhat[0] = r[0]/rnorm;

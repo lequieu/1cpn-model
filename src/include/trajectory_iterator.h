@@ -35,13 +35,18 @@ class TrajectoryIterator {
         std::vector<float> boxDim_;     //initial boxDim
         std::vector<float> boxDimPrev_; //prev boxDim
         std::vector<float> halfBox_;
+        std::vector<int> types_;
         std::streampos pos_;
         std::streampos posPrev_;
 		bool crash_ = false;   //Checks for a crash
         bool firstFrame_ = true;
         long long timestep_; 
         long long timestepPrev_; 
-        
+
+		bool get_crash(void);
+		bool check_crash(std::string);
+        double check_pbc(double,int);
+        void get_type(void); 
         void split(const std::string&, char, std::vector<std::string>&);
     public:
         //Initialize variables of the class here
@@ -54,15 +59,13 @@ class TrajectoryIterator {
         void reset();
         void load_dump(const char *);
         void get_info(void);
-        void get_type(void);
         std::vector<std::vector<double>> coords_;
         std::vector<std::vector<double>> quats_;
-        std::vector<int> types_;
         std::vector<std::vector<double>> get_vect(char);
+        std::vector<int> get_types(void);
         std::vector<float> get_boxDim(void);
         std::vector<double> get_com(void);
         std::vector<double> get_distVect(int,int);
-        double check_pbc(double,int);
         double get_dist(int,int);
         double get_angleSites(int,int,int);
         long long get_current_timestep(void); 
@@ -71,9 +74,7 @@ class TrajectoryIterator {
         int get_numFrames(void);
         int get_dumpfreq(void);
         int next_frame(void); 	
-		bool get_crash(void);
 		bool isFloat(std::string);
-		bool check_crash(std::string);
         void previous_frame(void);        
         void append_current_frame_to_file(std::string);
 
@@ -522,4 +523,8 @@ void TrajectoryIterator::clear_file_errors(){
 } 
 bool TrajectoryIterator::get_crash(){
 	return crash_;
+}
+std::vector<int> TrajectoryIterator::get_types(){
+    get_type();
+    return types_;
 }

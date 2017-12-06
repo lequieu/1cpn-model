@@ -40,8 +40,6 @@ int main(int argc, char**argv){
     natoms = parser.get_numAtoms();
     ntimestep = parser.get_numFrames();
 
-    double halfbox[3];
-
     int nnucl; 
     std::vector<double> gyr_tensor(3); //We are only going to evaluate the diagonals
     std::vector<double> com;
@@ -54,38 +52,34 @@ int main(int argc, char**argv){
        
         parser.next_frame();
         box_dim = parser.get_boxDim();
-
-        //vects_f = parser.get_vect('f');
-        //vects_v = parser.get_vect(quats,'v');
-        //vects_u = parser.get_vect('u');
         t = parser.get_current_timestep();
 
         //compute center of mass of each timestep
-        com = parser.get_com();
+        //com = parser.get_com();
         double sumx=0,sumy=0,sumz=0;
+        std::vector<int> types;
+        int pairs = 0;
 
-        //apply pbc
-        halfbox[0] = 0.5* (box_dim[1] - box_dim[0]);
-        halfbox[1] = 0.5* (box_dim[3] - box_dim[2]);
-        halfbox[2] = 0.5* (box_dim[5] - box_dim[4]);
-
+        types = parser.get_types();
         //evaluate the gyration tensor now
-        for(size_t j=0;j<natoms-1;j++){
-          for(size_t k =0; k<3; k++){
-            r[k] = parser.coords_[j][k]-com[k];
-            if (r[k] >  halfbox[k]) r[k] -= halfbox[k];
-            if (r[k] <- halfbox[k]) r[k] += halfbox[k];
+        for(size_t j=0;j<natoms;j++){
+          if(types[j] != 3) { //make sure the dyad sites aren't included in calculations
+            for(size_t k=0;k<natoms;k++){
+              if(types[k] != 3) {
+                r = parser.get_distVect(j,k);
+                sumx += r[0]*r[0];
+                sumy += r[1]*r[1];
+                sumz += r[2]*r[2];
+                pairs++;
+              }
+            }
           }
-          sumx += r[0]*r[0];
-          sumy += r[1]*r[1];
-          sumz += r[2]*r[2];
-          //dr = sqrt(dx*dx+dy*dy+dz*dz);
-          //sum += 1.0/dr;
         }
-
-        double Sxx = sumx*1.0/natoms;
-        double Syy = sumy*1.0/natoms;
-        double Szz = sumz*1.0/natoms;
+    
+        double totpairs = 1.0/pairs/pairs;
+        double Sxx = sumx*0.5*totpairs;
+        double Syy = sumy*0.5*totpairs;
+        double Szz = sumz*0.5*totpairs;
         double Rg2 = Sxx + Syy + Szz;
         ofile << t<< "\t" <<Sxx << "\t" << Syy << "\t" << Szz << "\t" << Rg2 << std::endl;
     

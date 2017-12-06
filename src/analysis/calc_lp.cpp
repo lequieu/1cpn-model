@@ -107,10 +107,10 @@ int main(int argc, char**argv){
     long long l0_count=0;
 
     double w0 = 108. * M_PI / 180.;
-
+    std::vector<int> types = parser.get_types();
     //make sure all atoms are dna type
     for (size_t j = 0; j<natoms;j++){
-        if (parser.types_[j] != 2){
+        if (types[j] != 2){
             std::cerr << "Error! All atom_types must be 2 (ie DNA) to compute lp" <<std::endl;
             exit(1);
         }

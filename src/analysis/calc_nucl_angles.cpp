@@ -52,8 +52,9 @@ int main(int argc, char**argv){
 
         if (firstframe){
             nnucl = 0;
+            std::vector<int> types = parser.get_types();
             for (size_t j=0;j<natoms;j++){
-              if (parser.types_[j] == 1){ //is nucleosome
+              if (types[j] == 1){ //is nucleosome
                 nucl_ids.push_back(j+1);
                 nnucl++;
               }
