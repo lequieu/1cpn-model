@@ -68,6 +68,8 @@ int main(int argc, char**argv){
       box_dim = parser.get_boxDim();
 
       std::vector<double> com0(3);
+      std::vector<double> com(3,0);
+      std::vector<double> comOld(3,0);
 
       bool firstframe = true;
       //Loop through the dump file using the parser
@@ -80,8 +82,7 @@ int main(int argc, char**argv){
           parser.next_frame();
 
           //calculate COM
-          std::vector<double> com;
-          com = parser.get_com();
+          com = parser.get_com(comOld);
 
           if (firstframe){
             com0[0] = com[0];
@@ -93,6 +94,7 @@ int main(int argc, char**argv){
           dy = com[1]- com0[1];
           dz = com[2]- com0[2];
           sumsqdisp[i] += (dx*dx + dy*dy + dz*dz);
+          for(size_t k=0; k<3; k++) {comOld[k] = com[k];}
 
           if (firstframe) firstframe = false;
       }  

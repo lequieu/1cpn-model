@@ -45,7 +45,6 @@ class TrajectoryIterator {
 
 		bool get_crash(void);
 		bool check_crash(std::string);
-        double check_pbc(double,int);
         void get_type(void); 
         void split(const std::string&, char, std::vector<std::string>&);
     public:
@@ -64,8 +63,9 @@ class TrajectoryIterator {
         std::vector<std::vector<double>> get_vect(char);
         std::vector<int> get_types(void);
         std::vector<float> get_boxDim(void);
-        std::vector<double> get_com(void);
+        std::vector<double> get_com(std::vector<double>);
         std::vector<double> get_distVect(int,int);
+        double check_pbc(double,int);
         double get_dist(int,int);
         double get_angleSites(int,int,int);
         long long get_current_timestep(void); 
@@ -381,30 +381,42 @@ void TrajectoryIterator::get_type() {
     return;
 };
 
-std::vector<double> TrajectoryIterator::get_com() {
-    std::vector<double> com(3);
-    std::vector<double> masses(3);
+//the get_com function takes in an old vector of the center of mass and checks to make sure the new one isn't going over periodic boundaries
+std::vector<double> TrajectoryIterator::get_com(std::vector<double> comOld) {
+    std::vector<double> com(3,0);
+    std::vector<double> masses(3,0);
+    std::vector<double> bondDist(3,0);
     
     //The masses are hard-coded here for now
     masses[0] = 196666.0000;
     masses[1] = 1950.000000;  
     masses[2] = 19500.00000;  
 
-    int type;
+    int typei,typej;
     com[0] = 0.0;
     com[1] = 0.0;
     com[2] = 0.0;
     double totalmass = 0;
-    for (size_t iatom=0; iatom < numAtoms_; iatom++){
-        type = types_[iatom]-1;
-        com[0] += coords_[iatom][0]*masses[type];
-        com[1] += coords_[iatom][1]*masses[type];
-        com[2] += coords_[iatom][2]*masses[type];
-        totalmass += masses[type];
+    for (size_t iatom=0; iatom < numAtoms_ - 1; iatom+=2){
+        bondDist = get_distVect(iatom+1,iatom);
+        typei = types_[iatom]-1;
+        typej = types_[iatom+1]-1;
+        for(size_t k = 0; k < 3; k++) {
+            com[k] += (coords_[iatom][k]*masses[typei]+(coords_[iatom][k]+bondDist[k])*masses[typej]);
+        }
+        totalmass += masses[typei]+masses[typej];
     }
     com[0] /= totalmass;
     com[1] /= totalmass;
     com[2] /= totalmass;
+
+    //Check if the center of mass crossed periodic boundaries and then update accordingly relative to previous position
+    double dist = 0;
+    for (size_t k = 0; k < 3; k++) {
+        dist = com[k] - comOld[k];
+        dist = check_pbc(dist,k);
+        com[k] = dist;
+    }
 
     return com;
 };

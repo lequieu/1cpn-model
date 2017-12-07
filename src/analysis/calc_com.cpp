@@ -48,6 +48,8 @@ int main(int argc, char**argv){
     std::string outfile;
     outfile = argv[2];
     ofile.open(outfile);
+    std::vector<double> com(3,0);
+    std::vector<double> comOld(3,0);
 
     bool firstframe = true;
     //Loop through the dump file using the parser
@@ -63,11 +65,11 @@ int main(int argc, char**argv){
         //vects_u = parser.get_vect(quats,'u');
         //vects_v = parser.get_vect(quats,'v');
         
-        //calculate COM
-        std::vector<double> com;
-        com = parser.get_com();
+        com = parser.get_com(comOld);
         
         ofile << t << " " << com[0] << " " << com[1] << " " << com[2] << std::endl;
+        //calculate COM
+        for(size_t k=0; k<3; k++) {comOld[k] = com[k];}
         
         if (firstframe) firstframe = false;
     }  

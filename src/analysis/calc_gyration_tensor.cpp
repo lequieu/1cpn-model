@@ -42,6 +42,7 @@ int main(int argc, char**argv){
 
     int nnucl; 
     std::vector<double> gyr_tensor(3); //We are only going to evaluate the diagonals
+    std::vector<double> comOld(3,0);
     std::vector<double> com;
     std::vector<double> r(3); //distance vector com-rsite dist
 
@@ -55,31 +56,26 @@ int main(int argc, char**argv){
         t = parser.get_current_timestep();
 
         //compute center of mass of each timestep
-        //com = parser.get_com();
         double sumx=0,sumy=0,sumz=0;
-        std::vector<int> types;
-        int pairs = 0;
+        double dist = 0;
 
-        types = parser.get_types();
+        com = parser.get_com(comOld);
         //evaluate the gyration tensor now
         for(size_t j=0;j<natoms;j++){
-          if(types[j] != 3) { //make sure the dyad sites aren't included in calculations
-            for(size_t k=0;k<natoms;k++){
-              if(types[k] != 3) {
-                r = parser.get_distVect(j,k);
-                sumx += r[0]*r[0];
-                sumy += r[1]*r[1];
-                sumz += r[2]*r[2];
-                pairs++;
-              }
-            }
+          for(size_t k=0;k<3;k++){
+            dist = parser.coords_[j][k]-com[k];
+            r[k] = parser.check_pbc(dist,k);
           }
+          sumx += r[0]*r[0];
+          sumy += r[1]*r[1];
+          sumz += r[2]*r[2];
         }
+
+        for(size_t k=0;k<3;k++) {comOld[k] = com[k];}
     
-        double totpairs = 1.0/pairs/pairs;
-        double Sxx = sumx*0.5*totpairs;
-        double Syy = sumy*0.5*totpairs;
-        double Szz = sumz*0.5*totpairs;
+        double Sxx = sumx*1.0/natoms;
+        double Syy = sumy*1.0/natoms;
+        double Szz = sumz*1.0/natoms;
         double Rg2 = Sxx + Syy + Szz;
         ofile << t<< "\t" <<Sxx << "\t" << Syy << "\t" << Szz << "\t" << Rg2 << std::endl;
     
