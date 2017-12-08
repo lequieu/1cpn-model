@@ -42,7 +42,7 @@ int main(int argc, char**argv){
 
     int nnucl; 
     std::vector<double> gyr_tensor(3); //We are only going to evaluate the diagonals
-    std::vector<double> comOld(3,0);
+    std::vector<double> comOld(3);
     std::vector<double> com;
     std::vector<double> r(3); //distance vector com-rsite dist
 

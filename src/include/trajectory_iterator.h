@@ -384,8 +384,8 @@ void TrajectoryIterator::get_type() {
 //the get_com function takes in an old vector of the center of mass and checks to make sure the new one isn't going over periodic boundaries
 std::vector<double> TrajectoryIterator::get_com(std::vector<double> comOld) {
     std::vector<double> com(3,0);
+    std::vector<double> coordsPrev(3,0);
     std::vector<double> masses(3,0);
-    std::vector<double> bondDist(3,0);
     
     //The masses are hard-coded here for now
     masses[0] = 196666.0000;
@@ -393,37 +393,54 @@ std::vector<double> TrajectoryIterator::get_com(std::vector<double> comOld) {
     masses[2] = 19500.00000;  
 
     int typei,typej;
-    com[0] = 0.0;
-    com[1] = 0.0;
-    com[2] = 0.0;
+    bool pbc = true; //pbc is the condition that the current bead is within the minimum image convention of the first bead
+    double dist = 0, distChange = 0;
     double totalmass = 0;
-    for (size_t iatom=0; iatom < numAtoms_ - 1; iatom+=2){
-        bondDist = get_distVect(iatom+1,iatom);
+
+    //Get the information of the first bead and add it to com
+    for(size_t k=0;k<3;k++) {
+        coordsPrev[k] = coords_[0][k];
+        com[k] += coordsPrev[k]*masses[types_[0]-1];
+    }
+    totalmass+= masses[types_[0]];
+
+    //As a result start from atom 1
+    for (size_t iatom=1; iatom < numAtoms_ ; iatom++){
+        //Check to see if atoms cross pbc with subsequent additions
         typei = types_[iatom]-1;
-        typej = types_[iatom+1]-1;
         for(size_t k = 0; k < 3; k++) {
-            com[k] += (coords_[iatom][k]*masses[typei]+(coords_[iatom][k]+bondDist[k])*masses[typej]);
+            dist = coords_[iatom][k]-coords_[iatom-1][k]; //It should appear as a difference with each dimension
+            distChange = check_pbc(dist,k);
+            double diff = fabs(distChange-dist);
+            if (diff > 0.1 && pbc) { pbc = false; }
+            else if (diff > 0.1 && !pbc) { pbc = true; }
+            else if (diff < 0.1 && !pbc) { pbc = false; }
+            else if (diff < 0.1 && pbc) { pbc = true; }
+
+            if(pbc) { coordsPrev[k] = coords_[iatom][k]; }
+            else if(!pbc) { coordsPrev[k] += distChange; }
+            com[k] += (coordsPrev[k]*masses[typei]);
         }
-        totalmass += masses[typei]+masses[typej];
+        totalmass += masses[typei];
     }
     com[0] /= totalmass;
     com[1] /= totalmass;
     com[2] /= totalmass;
 
     //Check if the center of mass crossed periodic boundaries and then update accordingly relative to previous position
-    double dist = 0;
     for (size_t k = 0; k < 3; k++) {
         dist = com[k] - comOld[k];
-        dist = check_pbc(dist,k);
-        com[k] = dist;
+        distChange = check_pbc(dist,k);
+        double diff = fabs(distChange-dist);
+        com[k] = comOld[k]+distChange;
     }
 
     return com;
 };
 
 double TrajectoryIterator::check_pbc(double dist, int dim) {
-    if (dist > halfBox_[dim]) {return dist - halfBox_[dim];}
-    else if (dist < -halfBox_[dim]) {return dist + halfBox_[dim];}
+    if (dist > halfBox_[dim]) {return dist - 2.0*halfBox_[dim];}
+    else if (dist < -halfBox_[dim]) {return dist + 2.0*halfBox_[dim];}
     else {return dist;}
 };
 
