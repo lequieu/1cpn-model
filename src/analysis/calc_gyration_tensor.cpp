@@ -34,21 +34,16 @@ int main(int argc, char**argv){
     parser.load_dump(dumpfilename.c_str());
 
     std::vector<float> box_dim;
-    //std::vector<std::vector<double>> vects_f;
-    //std::vector<std::vector<double>> vects_v;
-    //std::vector<std::vector<double>> vects_u;
     natoms = parser.get_numAtoms();
     ntimestep = parser.get_numFrames();
 
     int nnucl; 
     std::vector<double> gyr_tensor(3); //We are only going to evaluate the diagonals
-    std::vector<double> comOld(3);
     std::vector<double> com;
     std::vector<double> r(3); //distance vector com-rsite dist
 
     bool firstframe = true;
     //Loop through the dump file using the parser
-    //for(size_t i=0; i<timestep; i++) {
     for(size_t i=0; i<ntimestep; i++) {
        
         parser.next_frame();
@@ -59,7 +54,7 @@ int main(int argc, char**argv){
         double sumx=0,sumy=0,sumz=0;
         double dist = 0;
 
-        com = parser.get_com(comOld);
+        com = parser.get_com();
         //evaluate the gyration tensor now
         for(size_t j=0;j<natoms;j++){
           for(size_t k=0;k<3;k++){
@@ -71,8 +66,6 @@ int main(int argc, char**argv){
           sumz += r[2]*r[2];
         }
 
-        for(size_t k=0;k<3;k++) {comOld[k] = com[k];}
-    
         double Sxx = sumx*1.0/natoms;
         double Syy = sumy*1.0/natoms;
         double Szz = sumz*1.0/natoms;

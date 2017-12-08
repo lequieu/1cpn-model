@@ -35,6 +35,7 @@ class TrajectoryIterator {
         std::vector<float> boxDim_;     //initial boxDim
         std::vector<float> boxDimPrev_; //prev boxDim
         std::vector<float> halfBox_;
+        std::vector<float> comOld_;
         std::vector<int> types_;
         std::streampos pos_;
         std::streampos posPrev_;
@@ -63,7 +64,7 @@ class TrajectoryIterator {
         std::vector<std::vector<double>> get_vect(char);
         std::vector<int> get_types(void);
         std::vector<float> get_boxDim(void);
-        std::vector<double> get_com(std::vector<double>);
+        std::vector<double> get_com(void);
         std::vector<double> get_distVect(int,int);
         double check_pbc(double,int);
         double get_dist(int,int);
@@ -111,6 +112,7 @@ void TrajectoryIterator::load_dump(const char *fName) {
     boxDim_.resize(6);
     boxDimPrev_.resize(6);
     halfBox_.resize(3);
+    comOld_.resize(3,0);
 
     //Only store the number of atoms at the beginning.
     //This makes all useable loops of the form get_fxns->next_frame 
@@ -382,7 +384,7 @@ void TrajectoryIterator::get_type() {
 };
 
 //the get_com function takes in an old vector of the center of mass and checks to make sure the new one isn't going over periodic boundaries
-std::vector<double> TrajectoryIterator::get_com(std::vector<double> comOld) {
+std::vector<double> TrajectoryIterator::get_com(void) {
     std::vector<double> com(3,0);
     std::vector<double> coordsPrev(3,0);
     std::vector<double> masses(3,0);
@@ -429,10 +431,11 @@ std::vector<double> TrajectoryIterator::get_com(std::vector<double> comOld) {
 
     //Check if the center of mass crossed periodic boundaries and then update accordingly relative to previous position
     for (size_t k = 0; k < 3; k++) {
-        dist = com[k] - comOld[k];
+        dist = com[k] - comOld_[k];
         distChange = check_pbc(dist,k);
         double diff = fabs(distChange-dist);
-        com[k] = comOld[k]+distChange;
+        com[k] = comOld_[k]+distChange;
+        comOld_[k] = com[k];
     }
 
     return com;
