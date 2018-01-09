@@ -43,10 +43,11 @@ class LinkerHistone(object):
       self.salt_prefactor = 1.0 # 1.5
       self.num_in_gh = 6
       self.ctd_beads = 22
-      self.init_factor = 1.69 # initialization factor for lhist
+      #self.init_factor = 1.69 # initialization factor for lhist
+      self.init_factor = 1.0 # initialization factor for lhist
       self.lequil = 15.0 # bond equil length
       self.ldyadlh = 33.0 # dyad-lh length
-      self.ldyadctd = 46.0 # ctd-dyad length
+      self.ldyadctd = 45.0 # ctd-dyad length
       self.lnucllh = self.ldyadlh + d # nucl-lh length
       self.lnuclctd = self.ldyadctd + d # nucl-ctd length
       self.beta = 110.0; # beta for the ctd
@@ -140,10 +141,7 @@ def calc_dihedrals(pos1,pos2,pos3,pos4):
     psi = np.degrees(np.arctan2(y,x))
     # this keeps the dihedrals with consistent sign conventions as lammps
     # not my favorite implementation
-    if psi > -90:
-        return psi
-    else:
-        return -psi
+    return -psi
 
 #Modular function that adds in the linker histones if selected
 def add_linker_histones(molecule,lhist,param):
