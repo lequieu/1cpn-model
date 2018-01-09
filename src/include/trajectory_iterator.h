@@ -519,10 +519,9 @@ void TrajectoryIterator::append_current_frame_to_file(std::string filename){
         file << boxDim_[2] << " " << boxDim_[3] << std::endl;
         file << boxDim_[4] << " " << boxDim_[5] << std::endl;
         file << "ITEM: ATOMS id type x y z c_q[1] c_q[2] c_q[3] c_q[4]" << std::endl;
-        std::vector<int> types;
         get_info();
         for (int i = 0; i < numAtoms_; i++){
-            file << i+1 << " " << types[i] << " ";
+            file << i+1 << " " << types_[i] << " ";
             file << coords_[i][0] << " " << coords_[i][1] << " " << coords_[i][2] << " ";
             file << quats_[i][0] << " " << quats_[i][1] << " " << quats_[i][2] << " " << quats_[i][3];
             file << std::endl;
