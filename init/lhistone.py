@@ -8,12 +8,12 @@ from vect_quat_util import *
 # current lh parameters come from Luque et al (2014)
 
 class LinkerHistone(object):
-    __slots__ = ('ctd_mass', 'gh_mass', 'num_in_gh', 'linit',
+    __slots__ = ('ctd_mass', 'gh_mass', 'num_in_gh', 'init_factor',
                 'lequil', 'beta', 'salt_scale', 'lnucllh','salt_prefactor',
                 'ctd_shape', 'ctd_charges', 'ctd_beads','ldyadlh',
                 'ctd_bond_length','bonds','angles','dihedrals',
-                'kbondgh','kghctd','kbendgh','ktorsgh','ghupsi',
-                'gh_data','ctd_charges')
+                'kgh','kctd','kbendgh','ktorsgh','ghupsi',
+                'gh_data','ctd_charges','lnuclctd','ldyadctd')
 
     def __init__(self,d):
       self.bonds = []
@@ -30,11 +30,11 @@ class LinkerHistone(object):
       # the charges are taken from the sequence of the H1.4 tails
       self.ctd_charges = [0,2,2,3,0,4,0,2,2,4,0,2,3,2,2,2,2,2,2,2,2,3]; # array of H1.4 ctd CG charges
       # set the rest of the parameters
-      self.kbondgh = 100.0 # bond strength
-      self.kghctd = 1.0   # bond between gh and ctd strength
-      self.kbendgh = 50.0 # angle strength
-      self.ktorsgh = 20.0 # dihedral strength
-      self.ghupsi = -56 # dihedral between gh and ctd to prevent rotation
+      self.kgh = 50.0     # gh-gh bond strength
+      self.kctd = 0.1     # ctd-ctd bond strength
+      self.kbendgh = 10.0 # angle strength
+      self.ktorsgh = 10.0 # dihedral strength
+      self.ghupsi = 180.0 # dihedral between gh and ctd to prevent rotation
       self.salt_scale = { 5:1.1063,
                           15:1.1644,
                           80:1.4815,
@@ -43,12 +43,15 @@ class LinkerHistone(object):
       self.salt_prefactor = 1.0 # 1.5
       self.num_in_gh = 6
       self.ctd_beads = 22
-      self.linit = 7.0; # bond init length
+      #self.init_factor = 1.69 # initialization factor for lhist
+      self.init_factor = 1.0 # initialization factor for lhist
       self.lequil = 15.0 # bond equil length
       self.ldyadlh = 33.0 # dyad-lh length
+      self.ldyadctd = 45.0 # ctd-dyad length
       self.lnucllh = self.ldyadlh + d # nucl-lh length
+      self.lnuclctd = self.ldyadctd + d # nucl-ctd length
       self.beta = 110.0; # beta for the ctd
-      self.ctd_bond_length = 16.50 # gh ctd equil length (setting it to excluded volume distance)
+      self.ctd_bond_length = 1.0 # gh ctd equil length
 
     # function to calculate the bonded topology for the linker histone
     def calculate_topology(self):
@@ -90,8 +93,8 @@ def write_lhist_variables(fnme,lhist,salt):
   fnew.write( "variable ghg equal %f\n" % lhist.bonds[6])
   fnew.write( "variable ghh equal %f\n" % lhist.bonds[7])
   fnew.write( "variable ghi equal %f\n" % lhist.bonds[8])
-  fnew.write( "variable kbondgh equal %f\n" % lhist.kbondgh)
-  fnew.write( "variable kghctd equal %f\n" % lhist.kghctd)
+  fnew.write( "variable kbondgh equal %f\n" % lhist.kgh)
+  fnew.write( "variable kbondctd equal %f\n" % lhist.kctd)
   fnew.write( "variable kbendgh equal %f\n" % lhist.kbendgh)
   fnew.write( "variable ktorsgh equal %f\n" % lhist.ktorsgh)
   fnew.write( "variable ghalpha equal %f\n" % lhist.angles[0])
@@ -107,6 +110,8 @@ def write_lhist_variables(fnme,lhist,salt):
   fnew.write( "variable ctda equal %f\n" % lhist.lequil)
   fnew.write( "variable ldgh equal %f\n" % lhist.ldyadlh)
   fnew.write( "variable lngh equal %f\n" % lhist.lnucllh)
+  fnew.write( "variable ldctd equal %f\n" % lhist.ldyadctd)
+  fnew.write( "variable lnctd equal %f\n" % lhist.lnuclctd)
 
 
 # returns a bond from the positions
@@ -136,10 +141,7 @@ def calc_dihedrals(pos1,pos2,pos3,pos4):
     psi = np.degrees(np.arctan2(y,x))
     # this keeps the dihedrals with consistent sign conventions as lammps
     # not my favorite implementation
-    if psi > -90:
-        return -psi
-    else:
-        return psi
+    return -psi
 
 #Modular function that adds in the linker histones if selected
 def add_linker_histones(molecule,lhist,param):
@@ -190,22 +192,24 @@ def add_linker_histones(molecule,lhist,param):
 
         # for the other AAs
         for ictd in range(lhist.ctd_beads):
+          beta_init = lhist.beta*m.pi/180.0
           if ictd == 0:
-            lh_pos = np.add(lh_pos,np.multiply(lhist.ctd_bond_length,fvu[2])) #eq dist is 22.64 angstroms
-            q = tu2rotquat(lhist.beta*m.pi/180.0,fvu[0]) #rotate by 110 degrees about f
+            lh_pos = np.add(lh_pos,np.multiply(lhist.ctd_bond_length,fvu[2])) #eq dist is 10 angstroms
+            q = tu2rotquat(beta_init,fvu[0]) #rotate by 110/1.69 degrees (for the initial structure) about f
             lh_quat = quat_multiply(q,quat)
             lh_fvu = quat_fvu_rot(fvu0,lh_quat)  # update linker fvu
           else:
             # update the rotation of the next lh bead so that the zigzag pattern appears
             if ictd % 2 == 0:
-                q = tu2rotquat(lhist.beta*m.pi/180.0, fvu[0])
+                q = tu2rotquat(beta_init, fvu[0])
             else:
-                q = tu2rotquat(-lhist.beta*m.pi/180.0, fvu[0])
+                q = tu2rotquat(-beta_init, fvu[0])
             lh_quat = quat_multiply(q,quat)   # update quat
             lh_fvu = quat_fvu_rot(fvu0,lh_quat)  # update fvu
+            lh_mag = lhist.lequil/lhist.init_factor
 
             # set position using f,v,u and pre-calculated lengths
-            lh_pos = np.add(lh_pos,np.multiply(lhist.linit, -lh_fvu[2]))
+            lh_pos = np.add(lh_pos,np.multiply(lh_mag, -lh_fvu[2]))
 
           mytype = typemap["ctd"]
           # the salt_scale is the DiSCO calculated scaling for 150mM
