@@ -61,7 +61,6 @@ int main(int argc, char**argv){
 
     //Set up all vectors needed for the trajectory parser class
     std::vector<TrajectoryIterator> parsers(nreplicas);
-    std::vector<int> atom_types;
     std::vector<float> box_dim;
     std::vector<std::vector<double>> atoms;
     std::vector<std::vector<double>> quats;

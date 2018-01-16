@@ -45,7 +45,6 @@ int main(int argc, char**argv){
     TrajectoryIterator parser;
     parser.load_dump(dumpfilename.c_str());
 
-    std::vector<int> atom_types;
     std::vector<float> box_dim;
     std::vector<std::vector<double>> atoms;
     std::vector<std::vector<double>> quats;
@@ -53,7 +52,6 @@ int main(int argc, char**argv){
     std::vector<std::vector<double>> vects_v;
     std::vector<std::vector<double>> vects_u;
     natoms = parser.get_numAtoms();
-    atom_types = parser.get_type(); 
     ntimestep = parser.get_numFrames();
 
 
