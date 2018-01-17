@@ -1,0 +1,53 @@
+# Inputs issued to command line
+/hdd/DNA_Projects/1cpn_model/1cpn-model/init/init_1cpn.py -n 2 -nrl 187
+
+# All Arguements
+Namespace(boxfactor=1.5, lh=False, lhbool=False, nnucl=2, nrl=187, nrlends=None, salt=150, stemangle=90.0)
+
+# All paramaters and geometry values (just in case)
+param.nucl_bp_unwrap = 10
+param.charge_per_nucleosome = 0
+param.bp_mass = 650
+param.charge_per_bp = -1
+param.twist_per_bp = 0.628319
+param.rise_per_bp = 3.300000
+param.bead_mass = 1950
+param.charge_per_bead = -3
+param.twist_per_bead = 1.884956
+param.rise_per_bead = 9.900000
+param.nucl_mass = 196666
+param.dyad_mass = 19500
+param.basepair_per_bead = 3
+param.nrl = 187
+param.nrlends = 185.000000
+param.lh = 0
+param.salt = 150
+param.lnucldna = 419.100000
+param.lengthscale = 1.000000
+param.dna_linker_length = 40
+param.dna_linker_length_ends = 38.000000
+param.dna_in_nucl = 147
+param.bead_shape = [20.000000,20.000000,20.000000]
+param.nucl_shape = [55.000000,110.000000,110.000000]
+param.dyad_shape = [10.000000,10.000000,10.000000]
+param.nnucleosomes = 2
+param.boxsize_factor = 1.500000
+param.directory = .
+geom.alpha = 1.570796
+geom.gamma = 2.504382
+geom.epsilon = 0.377048
+geom.alpha_prime = 1.570796
+geom.theta = 0.000000
+geom.mu = 0.318605
+geom.zeta = 1.947844
+geom.eta = 2.822988
+geom.kappa = 3.460198
+geom.alpha0 = 1.570796
+geom.c = 48.017333
+geom.d = 35.000000
+geom.e = 50.514839
+geom.f = 84.795147
+geom.g = 44.644380
+geom.h = 13.984504
+geom.i = 35.357808
+geom.a = 91.871604
