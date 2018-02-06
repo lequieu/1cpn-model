@@ -1,3 +1,5 @@
+#!/usr/bin/env python 
+
 import numpy as np
 import os, glob, sys
 import subprocess
@@ -8,20 +10,17 @@ def ener_conserve():
 
     if not os.path.isfile("energy.dat"):
         print("No energy file cannot test system")
-        return True
+        return False
 
     d=np.loadtxt("energy.dat")
+    d_ener = d[:,2]
 
-    erot_threshold = 1e-6
-    d_low_erot = d[d[:,1] < erot_threshold]
-    n = d_low_erot.shape[0]
-
-    tol = 1e-1
     etot0 =d[0,2]
-    for i in range(n):
-        etot = d_low_erot[i,2]
+    tol = 1E-1*etot0
+    for i in range(len(d_ener)):
+        etot = d_ener[i]
         if (np.abs(etot - etot0) > tol):
-            print "TEST FAILED! etot at step %d is %f!" %(d_low_erot[i,0], etot)
+            print "TEST FAILED! etot difference at step %d is %f!" %(d[i,0], np.abs(etot-etot0))
             return False
     return True
 
@@ -50,7 +49,7 @@ def mom_conserve():
         elif 'TIMESTEP' in line:
 
             if abs(momentum-momentum_0) > 1E-3:
-                print("Warning system is not conserving momentum (%f)\n" % mom)
+                print("Warning system is not conserving momentum (%f)\n" % abs(momentum-momentum_0))
                 return False
             #Reinitialize everything
             momentum = 0.0
@@ -102,7 +101,7 @@ def amom_conserve():
                 for i in range(0,natoms):
                     ang_mom = ang_mom + np.sum(mass*np.cross(r[i]-com,v[i]-v_com))
             if abs(ang_mom-ang_mom_0) > 1E-3:
-                print("Warning system is not conserving angular momentum (%f)\n" % ang_mom)
+                print("Warning system is not conserving angular momentum (%f)\n" % abs(ang_mom-ang_mom_0))
                 return False
             #Reinitialize everything
             mtot = 0.0
@@ -144,15 +143,7 @@ print("Running 1CPN integration tests")
 
 #Currently only providing this option for the mpi version of lammps
 #Will probably throw an option to change later
-lammps_exec = "lmp_mpi"
-infile = "./ffld_list.dat"
-
-##Check for the force field list
-##Taken out for now because a walk might be cleaner
-#if not os.path.isfile(infile):
-#    print("Force field list file not found.")
-#    sys.exit(1)
-
+lammps_exec = "lmp_serial"
 #Run all tests in the directory
 owd = os.getcwd()
 for (dirpath,dirnames,filenames) in os.walk("."):
