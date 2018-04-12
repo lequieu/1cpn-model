@@ -1,7 +1,7 @@
 CC =     g++
 #CFLGS      =  -O2 -finline-functions -funroll-loops
 BINDIR = '../../bin'
-CFLGS      =  -ggdb 
+CFLGS      =  -ggdb -std=c++11
 LIBRY      =  -L/usr/local/lib -lm 
 INCLD      = -I../include 
 
