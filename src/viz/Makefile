@@ -2,7 +2,7 @@ CC =     g++
 #CFLGS      =  -O2 -finline-functions -funroll-loops
 LAMMPS_SRC ?= '../../../lammps-1cpn/src/'
 BINDIR = '../../bin'
-CFLGS      =  -ggdb 
+CFLGS      =  -ggdb -std=c++11
 LIBRY      =  -L/usr/local/lib -lm 
 INCLD      = -I../include -I${LAMMPS_SRC}
 
