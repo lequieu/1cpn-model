@@ -121,7 +121,7 @@ int main(int argc, char**argv){
     timestep = parser.get_numFrames();
     std::cout<<timestep<<std::endl;
     //Get the vector for the types of atoms
-    atom_types = parser.get_type(); 
+    atom_types = parser.get_types(); 
     //Get the number of atoms
     natom = parser.get_numAtoms();
     box_dim = parser.get_boxDim();

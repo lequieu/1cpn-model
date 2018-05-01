@@ -72,7 +72,7 @@ class TrajectoryIterator {
         int get_current_natoms(void); 
         int get_numAtoms(void);
         int get_numFrames(void);
-        std::vector<int> get_type(void); 
+        void get_type(void); 
         int get_dumpfreq(void);
         int next_frame(void); 	
 		bool isFloat(std::string);
@@ -357,7 +357,7 @@ std::vector<std::vector<double>> TrajectoryIterator::get_vect(char type) {
 
 //Get the type of each of the atoms
 //This should only really be called once
-std::vector<int> TrajectoryIterator::get_type() {
+void TrajectoryIterator::get_type() {
     if (numAtoms_ <= 0){
         std::cout << "Error! Trying to get_type() but numAtoms <= 0. Could the traj file be empty?" << std::endl;
         exit(1);
@@ -378,7 +378,6 @@ std::vector<int> TrajectoryIterator::get_type() {
         index -= 1;
         types_[index] = type;
     }
-    return types_;
 };
 
 
