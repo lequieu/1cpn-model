@@ -46,7 +46,6 @@ class TrajectoryIterator {
 
 		bool get_crash(void);
 		bool check_crash(std::string);
-        void get_type(void); 
         void split(const std::string&, char, std::vector<std::string>&);
     public:
         //Initialize variables of the class here
@@ -73,6 +72,7 @@ class TrajectoryIterator {
         int get_current_natoms(void); 
         int get_numAtoms(void);
         int get_numFrames(void);
+        void get_type(void); 
         int get_dumpfreq(void);
         int next_frame(void); 	
 		bool isFloat(std::string);
@@ -355,8 +355,6 @@ std::vector<std::vector<double>> TrajectoryIterator::get_vect(char type) {
 };
 
 
-
-
 //Get the type of each of the atoms
 //This should only really be called once
 void TrajectoryIterator::get_type() {
@@ -380,8 +378,8 @@ void TrajectoryIterator::get_type() {
         index -= 1;
         types_[index] = type;
     }
-    return;
 };
+
 
 //the get_com function takes in an old vector of the center of mass and checks to make sure the new one isn't going over periodic boundaries
 std::vector<double> TrajectoryIterator::get_com(void) {
