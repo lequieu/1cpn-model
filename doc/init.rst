@@ -15,3 +15,7 @@ It takes some command line arguments:
 
 note that if -n = 0, then only DNA will be generated of length -nrl
 
+not that if -lh flag used then then the in.1cpn line needs to be changed to 
+
+`variable lh equal 1`
+

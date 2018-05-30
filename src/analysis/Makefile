@@ -1,13 +1,18 @@
 CC =     g++
-#CFLGS      =  -O2 -finline-functions -funroll-loops
-LAMMPS_SRC ?= '../../../lammps-1cpn/src/'
 BINDIR = '../../bin'
-CFLGS      =  -ggdb 
 LIBRY      =  -L/usr/local/lib -lm 
-INCLD      = -I../include -I${LAMMPS_SRC}
+INCLD      = -I../include 
+
+DEBUG ?= 0
+ifeq ($(DEBUG),1)
+	CFLGS =  -ggdb -Wall -std=c++11
+else
+	CFLGS =  -O2 -finline-functions -funroll-loops -std=c++11
+endif
 
 all: calc_fvu_angle calc_site_dist shuffle_repx_dump calc_lp calc_sedimentation\
-     calc_msd_com calc_com clip_traj analyze_two_nucl_config
+     calc_msd_com calc_com clip_traj analyze_two_nucl_config calc_gyration_tensor\
+	 calc_nucl_angles
 
 calc_lp : calc_lp.cpp 
 	${CC} ${CFLGS} ${INCLD} calc_lp.cpp -o  ${BINDIR}/calc_lp.exe
@@ -29,6 +34,12 @@ calc_msd_com : calc_msd_com.cpp
 
 calc_com : calc_com.cpp 
 	${CC} ${CFLGS} ${INCLD} calc_com.cpp -o  ${BINDIR}/calc_com.exe
+
+calc_gyration_tensor : calc_gyration_tensor.cpp
+	${CC} ${CFLGS} ${INCLD} calc_gyration_tensor.cpp -o  ${BINDIR}/calc_gyration_tensor.exe
+
+calc_nucl_angles : calc_nucl_angles.cpp
+	${CC} ${CFLGS} ${INCLD} calc_nucl_angles.cpp -o  ${BINDIR}/calc_nucl_angles.exe
 
 clip_traj : clip_traj.cpp 
 	${CC} ${CFLGS} ${INCLD} clip_traj.cpp -o  ${BINDIR}/clip_traj.exe

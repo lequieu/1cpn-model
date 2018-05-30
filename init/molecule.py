@@ -22,6 +22,41 @@ class Molecule:
 
     def set_box(self,xlo,xhi,ylo,yhi,zlo,zhi):
         self.boxl = [xlo,xhi,ylo,yhi,zlo,zhi]
+    def auto_set_box(self,factor):
+        ''' Automatically Set Box Size to square that wraps using atom positions '''
+        mymin = 0 #np.zeros((3,))
+        mymax = 0 #np.zeros((3,))
+        for i in range(len(self.ellipsoids)):
+            pos = self.ellipsoids[i].pos
+            for j in range(3):
+                if pos[j] > mymax: mymax = pos[j]
+                if pos[j] < mymin: mymin = pos[j]
+
+        mymin *= factor
+        mymax *= factor
+        #self.set_box(mymin[0],mymax[0],mymin[1],mymax[1],mymin[2],mymax[2])
+        self.set_box(mymin,mymax,mymin,mymax,mymin,mymax)
+
+    def set_com(self,pos):
+        ''' shift all positions so that COM is at "pos" '''
+        com = self.get_com()
+        shift = com + pos
+        for i in range(len(self.ellipsoids)):
+            self.ellipsoids[i].pos -= shift
+
+
+    def get_com(self):
+        com = np.zeros((3,))
+        masstotal = 0;
+        for i in range(len(self.ellipsoids)):
+            mytype = self.ellipsoids[i].mytype
+            mass = self.atom_types[mytype-1].mass
+            com += (self.ellipsoids[i].pos * mass)
+            masstotal += mass
+        com /= masstotal
+        return com
+
+
     def write_psf(self,fnme):
         f = open(fnme,'w')
         for i in range(5):

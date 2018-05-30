@@ -137,8 +137,14 @@ void AngleWLCTwist::compute(int eflag, int vflag)
     costwist0 = cos(twist0rad);
     sintwist0 = sin(twist0rad);
 
-    uIdotuiP1plus1 = uI[0]*uP1[0] + uI[1]*uP1[1] + uI[2]*uP1[2] + 1;
+    uIdotuiP1plus1 = uI[0]*uP1[0] + uI[1]*uP1[1] + uI[2]*uP1[2] + 1.0;
+
+    //Make sure numerical instabilities are removed
+    if (uIdotuiP1plus1 < 1E-3) uIdotuiP1plus1 = 1E-3;
+    if (uIdotuiP1plus1 > 2.0) uIdotuiP1plus1 = 2.0;
+
     inv_uIdotuiP1plus1 = 1.0/uIdotuiP1plus1;
+
     cosalphaiplusgammai = (fP1[0]*fI[0] + fP1[1]*fI[1] + fP1[2]*fI[2] + 
 			   vP1[0]*vI[0] + vP1[1]*vI[1] + vP1[2]*vI[2]) * inv_uIdotuiP1plus1;   			   
 			   

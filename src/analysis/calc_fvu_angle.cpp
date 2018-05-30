@@ -41,10 +41,7 @@ int main(int argc, char**argv){
 
     //Set up all vectors needed for the trajectory parser class
     TrajectoryIterator parser;
-    std::vector<int> atom_types;
     std::vector<float> box_dim;
-    std::vector<std::vector<double>> atoms;
-    std::vector<std::vector<double>> quats;
     std::vector<std::vector<double>> vects_f;
     std::vector<std::vector<double>> vects_v;
     std::vector<std::vector<double>> vects_u;
@@ -54,8 +51,6 @@ int main(int argc, char**argv){
     //Get the number of frames
     timestep = parser.get_numFrames();
     std::cout<<timestep<<std::endl;
-    //Get the vector for the types of atoms
-    atom_types = parser.get_type(); 
     //Get the number of atoms
     natom = parser.get_numAtoms();
     box_dim = parser.get_boxDim();
@@ -101,11 +96,10 @@ int main(int argc, char**argv){
         int type,prevtype;
 
         //The actual functions from the parser
-        atoms = parser.get_coord();
-        quats = parser.get_quat();
-        vects_f = parser.get_vect(quats,'f');
-        vects_v = parser.get_vect(quats,'v');
-        vects_u = parser.get_vect(quats,'u');
+        parser.next_frame();
+        vects_f = parser.get_vect('f');
+        vects_v = parser.get_vect('v');
+        vects_u = parser.get_vect('u');
         //Make sure to move to the next frame
         //Since everything after this is processing the data we can put the next frame option here
 
@@ -136,7 +130,6 @@ int main(int argc, char**argv){
         } 
         ofile << std::endl;
 
-        parser.next_frame();
         if (firstframe) firstframe = false;
     }  
     ofile.close();

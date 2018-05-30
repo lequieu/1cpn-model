@@ -27,25 +27,20 @@ int main(int argc, char**argv){
 
     std::ofstream ofile;
     ofile.open(outfilename.c_str());
-    ofile << "# <timestep> <S20,w>" << std::endl;
+    ofile << "# <timestep> <total nucl average angle>  <theta(s)> ....." << std::endl;
 
     //Set up all vectors needed for the trajectory parser class
     TrajectoryIterator parser;
     parser.load_dump(dumpfilename.c_str());
 
     std::vector<float> box_dim;
-    //std::vector<std::vector<double>> vects_f;
-    //std::vector<std::vector<double>> vects_v;
-    //std::vector<std::vector<double>> vects_u;
     natoms = parser.get_numAtoms();
     ntimestep = parser.get_numFrames();
 
     int nnucl; 
     std::vector<int> nucl_ids;
-    double Rnucl = 50; //this is just a guess
-    double S1 = 11.1; //Arya2006 eq 32
-    double S20w;
-       
+    std::vector<double> angles;
+      
     bool firstframe = true;
     //Loop through the dump file using the parser
     //for(size_t i=0; i<timestep; i++) {
@@ -53,9 +48,6 @@ int main(int argc, char**argv){
        
         parser.next_frame();
 
-        //vects_f = parser.get_vect('f');
-        //vects_v = parser.get_vect(quats,'v');
-        //vects_u = parser.get_vect('u');
         t = parser.get_current_timestep();
 
         if (firstframe){
@@ -67,27 +59,30 @@ int main(int argc, char**argv){
                 nnucl++;
               }
             }
-
+            //resize the angles array
+            angles.resize(nucl_ids.size()-1);
         }
   
         //compute sedimentation coeff 
-        double sum=0;
-        double dx,dy,dz,dr;
-        int nuclj, nuclk;
-        for(size_t j=0;j<nnucl-1;j++){
-          nuclj = nucl_ids[j];
-          for(size_t k=j+1;k<nnucl;k++){
-            nuclk = nucl_ids[k];
-            dr = parser.get_dist(nuclk,nuclj);
-            //dx = parser.coords_[nuclk][0] - parser.coords_[nuclj][0];
-            //dy = parser.coords_[nuclk][1] - parser.coords_[nuclj][1];
-            //dz = parser.coords_[nuclk][2] - parser.coords_[nuclj][2];
-            //dr = sqrt(dx*dx+dy*dy+dz*dz);
-            sum += 1.0/dr;
-          }
+        double sum=0, angle = 0;
+        int nuclj, nuclk, nucll;
+        for(size_t j=1;j<nnucl-1;j++){
+          nuclj = nucl_ids[j-1];
+          nuclk = nucl_ids[j];
+          nucll = nucl_ids[j+1];
+          angle = parser.get_angleSites(nuclj,nuclk,nucll);
+          angles[j] = angle;
+          sum += angle;
         }
-        S20w = S1 * (1 + 2.* Rnucl / nnucl * sum);
-        ofile << t<< "\t" <<S20w << "\t" << sum << std::endl;
+
+        //calculate the average angle of nucleosomes
+        sum *= 1.0/(nnucl-2.0);
+
+        //write out the angles to the output file
+        ofile << t << "\t" << sum << "\t";
+        for(auto& angle : angles)
+            ofile << angle << "\t";
+        ofile << std::endl;
     
         if (firstframe) firstframe = false;
     }  
