@@ -32,7 +32,7 @@ class PairGaussAniso : public Pair {
   void settings(int, char **);
   void coeff(int, char **);
   void init_style();
-  void init_list(int, class NeighList *);
+  //void init_list(int, class NeighList *); // removed for compatability with LAMMPS May 2018
   double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
