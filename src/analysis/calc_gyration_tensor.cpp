@@ -14,7 +14,6 @@ int main(int argc, char**argv){
         std::cout<<"Usage: "<<argv[0]<<" <dump file> <output file> "<<std::endl;
         exit(1);
     }
-
    
     // Load dump
     long long ntimestep,t;
@@ -50,12 +49,14 @@ int main(int argc, char**argv){
         box_dim = parser.get_boxDim();
         t = parser.get_current_timestep();
 
-        //compute center of mass of each timestep
+        //Compute center of mass of each timestep
         double sumx=0,sumy=0,sumz=0;
         double dist = 0;
 
+        //Unwrap the coordinates 
+        parser.unwrap_coords();
         com = parser.get_com();
-        //evaluate the gyration tensor now
+        //Evaluate the gyration tensor
         for(size_t j=0;j<natoms;j++){
           for(size_t k=0;k<3;k++){
             dist = parser.coords_[j][k]-com[k];
@@ -66,6 +67,7 @@ int main(int argc, char**argv){
           sumz += r[2]*r[2];
         }
 
+        //Print to file
         double Sxx = sumx*1.0/natoms;
         double Syy = sumy*1.0/natoms;
         double Szz = sumz*1.0/natoms;
