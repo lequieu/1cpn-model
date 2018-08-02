@@ -1,9 +1,14 @@
 CC =     g++
-#CFLGS      =  -O2 -finline-functions -funroll-loops
 BINDIR = '../../bin'
-CFLGS      =  -ggdb 
 LIBRY      =  -L/usr/local/lib -lm 
 INCLD      = -I../include 
+
+DEBUG ?= 0
+ifeq ($(DEBUG),1)
+	CFLGS =  -ggdb -Wall -std=c++11
+else
+	CFLGS =  -O2 -finline-functions -funroll-loops -std=c++11
+endif
 
 all: calc_fvu_angle calc_site_dist shuffle_repx_dump calc_lp calc_sedimentation\
      calc_msd_com calc_com clip_traj analyze_two_nucl_config calc_gyration_tensor\

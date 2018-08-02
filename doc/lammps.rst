@@ -197,3 +197,24 @@ This potential is based off of the implementation of Brackley et al.
     :label: wlctwist
 
 
+Maintaing Compatability with LAMMPS
+------------------------------------
+
+In order to maintain compatability of 1CPN with the most recent version of LAMMPS it is helpful to know 
+which core LAMMPS potential the 1CPN potentials were derived from. By seeing what changed between the core 
+LAMMPS potentials (i.e. diff old and new version), it is typically straightforward to make the necessary 
+minor changes to the 1CPN potential to allow 1CPN-LAMMPS to compile.
+
+When trying a new version of LAMMPS, be sure to run the integration tests in `${D_1CPN}/test/integ_tests`, to make sure the model is behaving correctly
+
+  ============================  ================================
+        1CPN Potential             Original Lammps Potential
+  ============================  ================================
+  pair_style zewdie             pair_style gayberne
+  pair_style gauss/aniso        pair_style gayberne, pair_style gauss
+  angle_style wlctwist          angle_style wlctwist (Brackley2014)
+  angle_style orient            angle_style wlctwist
+  angle_style orient/cosine     angle_style wlctwist
+  ============================  ================================
+
+
