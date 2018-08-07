@@ -1,10 +1,8 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 //#include "myrandom.h"
 #include <vector>
 #include <stdio.h>
-#include <vector>
 #include <stdlib.h>
 #include <fstream>
 #include "trajectory_iterator.h"
@@ -19,7 +17,6 @@ class Bond{
       Bond(int a, int b):stea(a),steb(b){};
 };
 
-using namespace LAMMPS_NS;
 int main(int argc, char**argv){
     
     if (argc != 3) {
@@ -43,7 +40,7 @@ int main(int argc, char**argv){
         sprintf(newdumpfile,"%s.xyz",argv[2]);
         sprintf(newpsffile,"%s.psf",argv[2]);
 
-    int natomtypes = 3;
+    int natomtypes = 5;
     double r[natomtypes],a[natomtypes],d[natomtypes], nrot[natomtypes],c[natomtypes];
     int n[natomtypes];
     //r = radius of `cylinder` of extra sites
@@ -84,11 +81,23 @@ int main(int argc, char**argv){
     c[2] = 0. * ls;
     nrot[2] = 0;
 
+    //linker histone haven't decided how to viz yet
+    for (size_t lh_iter=3; lh_iter<natomtypes; lh_iter++) {
+        r[lh_iter] = 0.06 * ls;
+        a[lh_iter] = 0;
+        n[lh_iter] = 0;
+        d[lh_iter] = 0 * ls;
+        c[lh_iter] = 0. * ls;
+        nrot[lh_iter] = 0;
+    }
+
     //MASSES are hardcoded!
-    std::vector<double> masses(3+1);
+    std::vector<double> masses(5+1);
     masses[1] = 196666.0000;
     masses[2] = 1950.000000;  
     masses[3] = 19500.00000;  
+    masses[4] = 1466.000000;
+    masses[5] = 550.0000000;
 
 
 
@@ -103,8 +112,6 @@ int main(int argc, char**argv){
     std::vector<Bond> bonds;
     std::vector<int> atom_types;
     std::vector<float> box_dim;
-    std::vector<std::vector<double>> atoms;
-    std::vector<std::vector<double>> quats;
     std::vector<std::vector<double>> vects_f;
     std::vector<std::vector<double>> vects_u;
        
@@ -114,7 +121,7 @@ int main(int argc, char**argv){
     timestep = parser.get_numFrames();
     std::cout<<timestep<<std::endl;
     //Get the vector for the types of atoms
-    atom_types = parser.get_type(); 
+    atom_types = parser.get_types(); 
     //Get the number of atoms
     natom = parser.get_numAtoms();
     box_dim = parser.get_boxDim();
@@ -134,17 +141,16 @@ int main(int argc, char**argv){
         int type,prevtype;
         std::vector<int> natomoftype(natomtypes);
 
-        //The actual functions from the parser
-        atoms = parser.get_coord();
-        quats = parser.get_quat();
-        vects_f = parser.get_vect(quats,'f');
-        vects_u = parser.get_vect(quats,'u');
         //Make sure to move to the next frame
         //Since everything after this is processing the data we can put the next frame option here
         parser.next_frame();
 
+        //The actual functions from the parser
+        vects_f = parser.get_vect('f');
+        vects_u = parser.get_vect('u');
+
         for (size_t k=0;k<natom;k++){
-            type = atom_types[k] ;
+            type = atom_types[k]-1 ;
             if (type > natomtypes){
                 printf("ERROR: more than two atom types in dump! FIX ME!!!\n");
                 exit(1);
@@ -158,32 +164,14 @@ int main(int argc, char**argv){
         }
 
         //calculate COM
-        double com[3], totalmass;
-        com[0] =0.0;
-        com[1] =0.0;
-        com[2] =0.0;
-        totalmass = 0;
-        for (size_t iatom=0; iatom < natom; iatom++){
-          type = atom_types[iatom];
-          com[0] += atoms[iatom][0]*masses[type];
-          com[1] += atoms[iatom][1]*masses[type];
-          com[2] += atoms[iatom][2]*masses[type];
-          totalmass += masses[type];
-        }
-        com[0] /= totalmass;
-        com[1] /= totalmass;
-        com[2] /= totalmass;
-
+        std::vector<double> com(3,0);
+        parser.unwrap_coords();
+        com = parser.get_com();
 
         //Write colors for visualization
         if (firstframe){
             coloring = (double*) calloc(nnewatom,sizeof(double));
-        //    double ransum,ran;
-        //    ransum = 0;
             for (size_t j=0;j<nnewatom; j++){
-        //        ran = myrandom_gauss(1.0);
-        //        ransum += ran;
-        //        coloring[j] = ransum;
                 coloring[j] = 0.0;
             }
         }
@@ -215,16 +203,18 @@ int main(int argc, char**argv){
         char name[TWID];
         vector vin, vout;
         for(size_t k=0;k<natom;k++) {
-            type = atom_types[k];
+            type = atom_types[k]-1;
 
             if (type==0) sprintf(name,"N");
             else if (type==1) sprintf(name,"D");
             else if (type==2) sprintf(name,"G");
+            else if (type==3) sprintf(name,"GH");
+            else if (type==4) sprintf(name,"CTD");
 
             //print central atom
-            x = atoms[k][0];
-            y = atoms[k][1];
-            z = atoms[k][2];
+            x = parser.coords_[k][0];
+            y = parser.coords_[k][1];
+            z = parser.coords_[k][2];
 
             if (centercom){
               x -= com[0];
@@ -245,8 +235,13 @@ int main(int argc, char**argv){
 
                 if (k >= 1) {
                     //write dna-dna bonds
-                    if ((atom_types[k] == 1) && (atom_types[k-1] == 1)){
+                    if ((atom_types[k] == 2) && (atom_types[k-1] == 2)){
                         bonds.push_back(Bond(iatom,iatom-1-n[1]));
+                        ibond++;
+                    }
+                    //write lh-lh bonds
+                    if (((atom_types[k] >= 4) && (atom_types[k-1] >= 4)) && !((atom_types[k] == 4) && (atom_types[k-1] == 5))) {
+                        bonds.push_back(Bond(iatom,iatom-1));
                         ibond++;
                     }
                 }
@@ -291,6 +286,8 @@ int main(int argc, char**argv){
             if (type==0) sprintf(name,"N1");
             else if (type==1) sprintf(name,"D1");
             else if (type==2) sprintf(name,"G1");
+            else if (type ==3) sprintf(name,"GH1");
+            else if (type ==4) sprintf(name,"CTD1");
 
             for (size_t j=0; j<n[type]; j++){
                 angle = anglepersite * j + stem_interp_angle; 
@@ -316,9 +313,9 @@ int main(int argc, char**argv){
                 cstem[1] = factor * vin[1] * (c[type] - r[type]);
                 cstem[2] = factor * vin[2] * (c[type] - r[type]);
 
-                x = atoms[k][0] + vout[0] * r[type] + dstem[0] + cstem[0];
-                y = atoms[k][1] + vout[1] * r[type] + dstem[1] + cstem[1];
-                z = atoms[k][2] + vout[2] * r[type] + dstem[2] + cstem[2];
+                x = parser.coords_[k][0] + vout[0] * r[type] + dstem[0] + cstem[0];
+                y = parser.coords_[k][1] + vout[1] * r[type] + dstem[1] + cstem[1];
+                z = parser.coords_[k][2] + vout[2] * r[type] + dstem[2] + cstem[2];
 
                 if (centercom){
                   x -= com[0];
@@ -362,7 +359,7 @@ int main(int argc, char**argv){
 
                     if (j==(n[type]-1)){// also if last site
                         
-                        if ((k != natom-3) && (type == 0) && (atom_types[k+2] == 1)){
+                        if ((k != natom-3) && (type == 0) && (atom_types[k+2] == 2)){
                             //int bondsite = iatom + 1; //bond to next dna, no ghost
                             int bondsite = iatom + 1 + 1 + n[2]; //bond to next dna, with ghost
                             if (bondsite < nnewatom){

@@ -5,7 +5,6 @@
 #include <fstream>
 #include <string>
 #include "trajectory_iterator.h"
-#include "math_vector.h"
 
 
 
@@ -35,16 +34,14 @@ int main(int argc, char**argv){
     TrajectoryIterator parser;
     parser.load_dump(dumpfilename.c_str());
 
-    std::vector<int> atom_types;
     std::vector<float> box_dim;
-    std::vector<std::vector<double>> atoms;
-    std::vector<std::vector<double>> quats;
     std::vector<std::vector<double>> vects_f;
     std::vector<std::vector<double>> vects_v;
     std::vector<std::vector<double>> vects_u;
     natoms = parser.get_numAtoms();
-    atom_types = parser.get_type(); 
     ntimestep = parser.get_numFrames();
+
+    double halfbox[3];
 
     // define vectors
     std::vector<double> r(3),rhat(3),fA(3),fB(3);
@@ -61,8 +58,9 @@ int main(int argc, char**argv){
     for(size_t i=0; i<ntimestep; i++) {
         if (firstframe){
           int nnucl = 0;
+          std::vector<int> types = parser.get_types();
           for (size_t j=0; j<natoms; j++){
-            if (atom_types[j] == 0){
+            if (types[j] == 1){
               if (nnucl == 0) nuclA = j;
               else if (nnucl == 1) nuclB = j;
               else{
@@ -75,17 +73,32 @@ int main(int argc, char**argv){
 
         }
         //The actual functions from the parser
+        parser.next_frame();
         t = parser.get_current_timestep();
-        atoms = parser.get_coord();
-        quats = parser.get_quat();
-        vects_f = parser.get_vect(quats,'f');
+        vects_f = parser.get_vect('f');
+        box_dim = parser.get_boxDim();
+
         
         fA = vects_f[nuclA];
         fB = vects_f[nuclB];
-        
-        r[0] = atoms[nuclB][0] - atoms[nuclA][0];
-        r[1] = atoms[nuclB][1] - atoms[nuclA][1];
-        r[2] = atoms[nuclB][2] - atoms[nuclA][2];
+       
+        r = parser.get_distVect(nuclB,nuclA);
+        ////r[0] = parser.coords_[nuclB][0] - parser.coords_[nuclA][0];
+        ////r[1] = parser.coords_[nuclB][1] - parser.coords_[nuclA][1];
+        ////r[2] = parser.coords_[nuclB][2] - parser.coords_[nuclA][2];
+
+        ////apply pbc
+        //halfbox[0] = 0.5* (box_dim[1] - box_dim[0]);
+        //halfbox[1] = 0.5* (box_dim[3] - box_dim[2]);
+        //halfbox[2] = 0.5* (box_dim[5] - box_dim[4]);
+
+        //if (r[0] >  halfbox[0]) r[0] -= halfbox[0]; 
+        //if (r[0] <- halfbox[0]) r[0] += halfbox[0]; 
+        //if (r[1] >  halfbox[1]) r[1] -= halfbox[1]; 
+        //if (r[1] <- halfbox[1]) r[1] += halfbox[1]; 
+        //if (r[2] >  halfbox[2]) r[2] -= halfbox[2]; 
+        //if (r[2] <- halfbox[2]) r[2] += halfbox[2]; 
+
         rnorm = sqrt(r[0]*r[0] + r[1]*r[1] + r[2]*r[2]);
         rhat[0] = r[0]/rnorm;
         rhat[1] = r[1]/rnorm;
@@ -107,9 +120,9 @@ int main(int argc, char**argv){
         phi = acos(fAdotfB) * 180. / M_PI;
         
 
+        ofile << t << " " <<rnorm << " " << phi << " " << thetaA << " " << thetaB << std::endl;
         //threshold rnorm
         if (rnorm < rnorm_saddle){ //bound r region
-          ofile << t << " " <<rnorm << " " << phi << " " << thetaA << " " << thetaB << std::endl;
           //ofile << t << " " <<rnorm << " " << fAdotfB << " " << rdotfA << " " << rdotfB << std::endl;
           count_in_r_region[0]++;
 
@@ -123,7 +136,6 @@ int main(int argc, char**argv){
           count_in_r_region[1]++;
         }
 
-        parser.next_frame();
         if (firstframe) firstframe = false;
     }  
     ofile.close();

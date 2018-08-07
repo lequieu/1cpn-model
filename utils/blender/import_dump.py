@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#tool for rendering 1cpn in blender
+'''tool for rendering 1cpn in blender'''
 
 import bpy
 import math
@@ -8,24 +8,16 @@ import copy
 from mathutils import Vector
 from mathutils import Quaternion
 import pdb
+import os
 
-path_zewdie = "/media/int_3TB/Work/dna_chromatin/1cpn/viz/trunk/blender/utils/zewdie.stl"
-path_traj = "/media/int_3TB/Work/dna_chromatin/1cpn/viz/trunk/blender/dump/in.dump"
-#path_traj = "/media/int_3TB/Work/dna_chromatin/1cpn/viz/trunk/blender/dump/in_2nucl_2.dump"
-#path_traj = "/media/int_3TB/Work/dna_chromatin/1cpn/viz/trunk/blender/dump/in_1ncp.dump"
-#path_traj = "/media/int_3TB/Work/dna_chromatin/1cpn/viz/trunk/blender/dump/in_1nucl_dnaopen.dump"
-#path_traj = "/media/int_3TB/Work/dna_chromatin/1cpn/viz/trunk/blender/dump/dnaonly.dump"
-#path_traj = "/media/int_3TB/Work/dna_chromatin/1cpn/viz/trunk/blender/dump/traj.dump"
-#path_traj = "/media/int_3TB/Work/dna_chromatin/1cpn/viz/trunk/blender/dump/traj_n30.dump"
+#--------------------------------------------------------------------------
+# Define Global Variables
+#--------------------------------------------------------------------------
 
-
-#path_zewdie = "/home/lequieu/Work/depablo/1cpn/viz/trunk/blender/utils/zewdie.stl"
-#path_traj = "/home/lequieu/Work/depablo/1cpn/viz/trunk/blender/simple.dump"
-#path_traj = "/home/lequieu/Work/depablo/1cpn/viz/trunk/blender/in_2nucl.dump"
-#path_traj = "/home/lequieu/Work/depablo/1cpn/viz/trunk/blender/traj.dump"
+PATH_ZEWDIE = "%s/1cpn-model/utils/blender/zewdie.stl" % os.environ['D_1CPN']
+PATH_TRAJ = "/tmp/frame.dump"
 
 SCALEFACTOR=0.05
-# if true, draw bonds within nucl, and create different materials
 DRAWNDNA = True
 DYADBONDS = False
 NDNABONDS = False
@@ -36,8 +28,7 @@ COLORS={'fvec'  :(1,0.05,0.05, 1), #red
         'vvec'  :(0.05,1,0.05, 1), # green
         'uvec'  :(0.05,0.05,1, 1), # dark blue
         'bead'  :(0.111,0.264,1, 1), 
-        'nucldna'  :(0.111,0.264,1, .7),
-#       'dyad' :(1.0,0.386,0.145, 1),
+        'nucldna'  :(0.111,0.264,1, 1.0),
         'dyad' :(1.0,0.921,0.0, 1),
         'plane' :(1, 1, 1, 1),
         'worldbg' :(1, 1, 1, 1),
@@ -45,15 +36,17 @@ COLORS={'fvec'  :(1,0.05,0.05, 1), #red
         'zewdiecore':(1,0.194,0.194, 1.0),
         'bond-12':(0.892, 0.282, 0.051, 1.0) , #orange
         'bond-22-nucl':(0.046, 0.500, 0.045, 1.0), # green
-#        'bond-22-nucl':(0.216, 0.013, 1.000, 1.0),
         'bond-22':(0.111,0.264,1, .7), #blue 
-        'bond-22-main':(0.111,0.264,1, .7), #blue 
+        'bond-22-main':(0.111,0.264,1, 1.0), #blue 
         'bond-22-secondary':(.134,.5, .692, 1.0), #light blue
         'bond-13':(0.049, 0.466, 0.805, 1.0) , #light blue
-#        'bond-23':(0.892, 0.282, 0.051, 1.0) , 
         'bond-23':(0.216, 0.013, 1.000, 1.0)} #purple
-#        'zewdie':    (0.575,0.057,1, 0.2),
-#        'zewdie':(0.05,0.50,1, 0.2)}
+
+NUCL_PROPS = {'layerweight': 0.05, 'transparent1': (1,.262,.282,1), 'emission1': ((.8,.3,.341,1),2), 'wireframe': 0.3, 'volabsorp': ((.8,.414,.414,1),1), 'emission2': ((.8,.51,.459,1),.5),'mixer4': 0.5}
+
+#--------------------------------------------------------------------------
+# Be careful about editing below here
+#--------------------------------------------------------------------------
 
 try:
     import bpy
@@ -342,7 +335,7 @@ def create_material_holograph():
 
     name = 'hologram'
     #red
-    val = {'layerweight': 0.05, 'transparent1': (1,.262,.282,1), 'emission1': ((.8,.3,.341,1),2), 'wireframe': 0.3, 'volabsorp': ((.8,.414,.414,1),1), 'emission2': ((.8,.51,.459,1),.5),'mixer4': 0.5}
+    val = NUCL_PROPS
     #original blue
     #val = {'layerweight': 0.05, 'transparent1': (.566,.708,1,1), 'emission1': ((.298,.676,.8,1),2), 'wireframe': 0.3, 'volabsorp': ((.255,.308,.8,1),1), 'emission2': ((.298,.676,.8,1),0.5), 'mixer4': 0.5}
 
@@ -845,6 +838,7 @@ def draw_nucl(loc,quat):
     obs.append(ob)    
  
     ob = draw_coordframe(loc,quat)
+    #draw big coord frame
     #ob = draw_coordframe(loc,quat, length=(50,75,75),dcone=15,rcyl=5)
     obs.append(ob)    
 
@@ -860,7 +854,7 @@ def draw_nucl(loc,quat):
     if NDNABONDS or DYADBONDS:
       pass
     else:
-      bpy.ops.import_mesh.stl(filepath=path_zewdie)
+      bpy.ops.import_mesh.stl(filepath=PATH_ZEWDIE)
       bpy.ops.object.shade_smooth()
       ob = bpy.context.object
       name = 'zewdie'
@@ -994,6 +988,15 @@ def draw_dna_bond(x1,x2,q1,q2,nameA,nameB,rcylA=7*SCALEFACTOR,rcylB=3*SCALEFACTO
     mat = create_material(name,COLORS[name])
     ob.data.materials.append(mat)
     obs.append(ob)
+
+    bpy.ops.mesh.primitive_uv_sphere_add(size=rcylA, location=x1)
+    bpy.ops.object.shade_smooth()
+    ob = bpy.context.object
+    name = nameA
+    mat = create_material(name,COLORS[name])
+    ob.data.materials.append(mat)
+    obs.append(ob)
+
 
     draw_cyl(start = x1, end=x2,rcyl=rcylA,end_fill_type='NOTHING')
     bpy.ops.object.shade_smooth()
@@ -1134,10 +1137,9 @@ def import_traj(dump,frames):
  
 
 ##################################
-# START THE BUSINESS
+# START THE MAIN METHOD
 ##################################
 #bpy.context.space_data.viewport_shade = 'MATERIAL'
-
 
 bpy.context.scene.render.engine = 'CYCLES'
 
@@ -1149,7 +1151,7 @@ items=bpy.data.materials.items()
 for i in range(len(items)):
     bpy.data.materials.remove(items[i][1],do_unlink=True)
 
-dump = DumpReader(path_traj)
+dump = DumpReader(PATH_TRAJ)
 frames = range(10)
 import_traj(dump,frames)
 
@@ -1157,9 +1159,11 @@ set_world_bg(COLORS['worldbg'])
 
 setup_scene()
 
-
-#draw_nucl((0,0,0),(0,1,0,0))
+#------------------------------------------------------------
+# Calling functions invidually can be useful for debugging
+#------------------------------------------------------------
+#draw_nucl((0,0,0),(1,0,0,0))
+#draw_coordframe((0,0,0),(1,0,0,0),length=(50,75,75))
 #draw_nucl_dna((0,0,0),(0,1,0,0),nucl_bp_unwrap=11)
 #draw_dna_bead((0,0,0),(0,1,0,0))
-#draw_coordframe((0,0,10),(1,0,0,0))
 #draw_arrow()

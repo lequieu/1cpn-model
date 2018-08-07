@@ -5,7 +5,6 @@
 #include <fstream>
 #include <string>
 #include "trajectory_iterator.h"
-#include "math_vector.h"
 
 
 
@@ -34,64 +33,53 @@ int main(int argc, char**argv){
     TrajectoryIterator parser;
     parser.load_dump(dumpfilename.c_str());
 
-    std::vector<int> atom_types;
     std::vector<float> box_dim;
-    std::vector<std::vector<double>> atoms;
-    std::vector<std::vector<double>> quats;
-    std::vector<std::vector<double>> vects_f;
-    std::vector<std::vector<double>> vects_v;
-    std::vector<std::vector<double>> vects_u;
     natoms = parser.get_numAtoms();
-    atom_types = parser.get_type(); 
     ntimestep = parser.get_numFrames();
 
     int nnucl; 
     std::vector<int> nucl_ids;
-    double Rnucl = 10; //this is just a guess
+    double Rnucl = 54.6; //Arya2006 
     double S1 = 11.1; //Arya2006 eq 32
     double S20w;
        
     bool firstframe = true;
     //Loop through the dump file using the parser
-    //for(size_t i=0; i<timestep; i++) {
     for(size_t i=0; i<ntimestep; i++) {
-        
-
-        //The actual functions from the parser
-        atoms = parser.get_coord();
-        quats = parser.get_quat();
-        vects_f = parser.get_vect(quats,'f');
-        //vects_v = parser.get_vect(quats,'v');
-        vects_u = parser.get_vect(quats,'u');
+       
+        //Get the frame timestep and move to next frame
+        parser.next_frame();
         t = parser.get_current_timestep();
 
         if (firstframe){
             nnucl = 0;
+            std::vector<int> types = parser.get_types();
             for (size_t j=0;j<natoms;j++){
-              if (atom_types[j] == 0){
-                nucl_ids.push_back(j);
+              if (types[j] == 1){ //is nucleosome
+                nucl_ids.push_back(j+1);
                 nnucl++;
               }
             }
-
         }
   
+        //unwrap the coordinates
+        parser.unwrap_coords();
+
         //compute sedimentation coeff 
         double sum=0;
         double dx,dy,dz,dr;
+        int nuclj, nuclk;
         for(size_t j=0;j<nnucl-1;j++){
+          nuclj = nucl_ids[j];
           for(size_t k=j+1;k<nnucl;k++){
-            dx = atoms[k][0] - atoms[j][0];
-            dy = atoms[k][1] - atoms[j][1];
-            dz = atoms[k][2] - atoms[j][2];
-            dr = sqrt(dx*dx+dy*dy+dz*dz);
+            nuclk = nucl_ids[k];
+            dr = parser.get_dist(nuclk,nuclj);
             sum += 1.0/dr;
           }
         }
-        S20w = S1 * (1 + 2.*Rnucl / nnucl * sum);
-        ofile << t<< "\t" <<S20w << std::endl;
+        S20w = S1 * (1 + 2.* Rnucl / nnucl * sum);
+        ofile << t<< "\t" <<S20w << "\t" << sum << std::endl;
     
-        parser.next_frame();
         if (firstframe) firstframe = false;
     }  
 

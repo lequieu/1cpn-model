@@ -6,10 +6,22 @@
 #include <string>
 #include <sstream>
 #include <limits>
-#include "math_vector.h"
 
-//For quaternion use only (probably try to do it better later on)
-using namespace LAMMPS_NS;
+
+// A few useful functions copied from LAMMPS
+typedef double vector[3];                // 0:x  1:y  2:z
+typedef double quaternion[4];                // quaternion
+typedef double form[6];                        // 0:xx 1:yy 2:zz 3:zy 4:zx 5:yx
+inline void quat_vec_rot(vector &dest, vector &src, quaternion &q) {
+  quaternion aa={q[0]*q[0], q[1]*q[1], q[2]*q[2], q[3]*q[3]};
+  form ab={q[0]*q[1], q[0]*q[2], q[0]*q[3], q[1]*q[2], q[1]*q[3], q[2]*q[3]};
+  dest[0] = (aa[0]+aa[1]-aa[2]-aa[3])*src[0]+
+            ((ab[3]-ab[2])*src[1]+(ab[1]+ab[4])*src[2])*2.0;
+  dest[1] = (aa[0]-aa[1]+aa[2]-aa[3])*src[1]+
+            ((ab[2]+ab[3])*src[0]+(ab[5]-ab[0])*src[2])*2.0;
+  dest[2] = (aa[0]-aa[1]-aa[2]+aa[3])*src[2]+
+            ((ab[4]-ab[1])*src[0]+(ab[0]+ab[5])*src[1])*2.0;
+}
 
 //This is a standard c++ class that we plan to use for 1cpn analysis
 //The TrajectoryIterator contains a load->get format which will be run from a separate c++ script
@@ -22,11 +34,19 @@ class TrajectoryIterator {
         int numAtomsPrev_;              //prev numAtoms
         std::vector<float> boxDim_;     //initial boxDim
         std::vector<float> boxDimPrev_; //prev boxDim
+        std::vector<float> halfBox_;
+        std::vector<float> comOld_;
+        std::vector<int> types_;
         std::streampos pos_;
         std::streampos posPrev_;
+		bool crash_ = false;   //Checks for a crash
+        bool firstFrame_ = true;
         long long timestep_; 
         long long timestepPrev_; 
-        
+
+		bool get_crash(void);
+		bool check_crash(std::string);
+        void get_type(void); 
         void split(const std::string&, char, std::vector<std::string>&);
     public:
         //Initialize variables of the class here
@@ -38,19 +58,28 @@ class TrajectoryIterator {
         void close();
         void reset();
         void load_dump(const char *);
-        std::vector<std::vector<double>> get_coord(void);
-        std::vector<std::vector<double>> get_quat(void);
-        std::vector<std::vector<double>> get_vect(std::vector<std::vector<double>>, char);
-        std::vector<int> get_type(void);
+        void get_info(void);
+        void unwrap_coords(void);
+        std::vector<std::vector<double>> coords_;
+        std::vector<std::vector<double>> quats_;
+        std::vector<std::vector<double>> get_vect(char);
+        std::vector<int> get_types(void);
         std::vector<float> get_boxDim(void);
+        std::vector<double> get_com(void);
+        std::vector<double> get_distVect(int,int);
+        double check_pbc(double,int,int);
+        double get_dist(int,int);
+        double get_angleSites(int,int,int);
         long long get_current_timestep(void); 
         int get_current_natoms(void); 
         int get_numAtoms(void);
         int get_numFrames(void);
         int get_dumpfreq(void);
-        int next_frame(void); 
+        int next_frame(void); 	
+		bool isFloat(std::string);
         void previous_frame(void);        
         void append_current_frame_to_file(std::string);
+
 };
 
 //resets file to the first frame
@@ -63,6 +92,15 @@ void TrajectoryIterator::reset() {
 void TrajectoryIterator::close() {
     dumpFile_.close();
 }
+
+//Reads string before it is cast as a float to make sure it is a float
+bool TrajectoryIterator::isFloat( std::string myString ) {
+	std::istringstream iss(myString);
+	float f;
+	iss >> std::noskipws >> f; //noskipws considers leading whitespace invalid
+	return iss.eof() && !iss.fail();
+}	
+
 //Function that loads the specified dump file
 void TrajectoryIterator::load_dump(const char *fName) {
     //Open the file here and make sure it exists
@@ -74,6 +112,8 @@ void TrajectoryIterator::load_dump(const char *fName) {
     //Size the boxdimensions to three dimensions
     boxDim_.resize(6);
     boxDimPrev_.resize(6);
+    halfBox_.resize(3);
+    comOld_.resize(3,0);
 
     //Only store the number of atoms at the beginning.
     //This makes all useable loops of the form get_fxns->next_frame 
@@ -81,6 +121,15 @@ void TrajectoryIterator::load_dump(const char *fName) {
 
     timestepPrev_ = timestep_;
     numAtomsPrev_ = numAtoms_;
+
+    //Initialize and size the quat vectors to num atoms
+    quats_.resize(numAtoms_);
+    coords_.resize(numAtoms_);
+    for(size_t i=0; i<numAtoms_; i++) {
+        quats_[i].resize(4);
+        coords_[i].resize(3);
+    }
+
     for (int i=0;i<6;i++){ 
       boxDimPrev_[i] = boxDim_[i];
     }
@@ -160,8 +209,15 @@ int TrajectoryIterator::next_frame(void) {
         if (line.find("ITEM: ATOMS") != std::string::npos) {
             posPrev_ = pos_;
             pos_ = dumpFile_.tellg();
-
-            return 0;
+            //Populate the internal vectors here if the system hasn't crashed
+            if(firstFrame_) {
+                get_type();
+                firstFrame_ = false;
+                return 0;
+            }
+            get_info();
+            if(!crash_) { return 0; }
+            else {crash_ = false;}
         }
         //populate values pertaining to ATOMS
         else if (line.find("ITEM: TIMESTEP") != std::string::npos) {
@@ -178,6 +234,7 @@ int TrajectoryIterator::next_frame(void) {
                 split(line,' ',l); 
                 boxDim_[2*i] = std::stof(l[0]);
                 boxDim_[2*i+1] = std::stof(l[1]);
+                halfBox_[i] = 0.5*(boxDim_[2*i+1]-boxDim_[2*i]);
             }
         }
     }
@@ -199,47 +256,31 @@ void TrajectoryIterator::previous_frame(void) {
     
 };
 
-//Return the coordinates as a vector of vectors
+//This checks to see if the trajectory has become in any way corrupted
+bool TrajectoryIterator::check_crash(std::string myString) {
+    std::vector<std::string> l;
+	split(myString,' ',l); 
+	for(size_t j=1; j<l.size(); j++) {
+		if(!isFloat(l[j])) {
+			std::cerr << "Warning! Read error occurred at timestep: " <<timestep_<<std::endl;
+			crash_ = true;
+			return true;
+		}
+	}
+	crash_ = false;
+	return false;
+}
+
+//Get the information of the atom vectors and quaternions
 //FIXME I dont like the double parsing of the file when coords and quat are gotten, when next frame is called, I think internal vectors should be populated for type, coord, quat
 //FIXME then the get_coord will only copy that data over?, or send a pointer to the TrajectoryIterator object?
-std::vector<std::vector<double>> TrajectoryIterator::get_coord(void) {
-    std::vector<std::vector<double>> atom_pos;
+void TrajectoryIterator::get_info() {
+    //std::vector<std::vector<double>> atom_quat;
 
-    //Initialize and size the atom vectors
-    atom_pos.resize(numAtoms_); 
-    for(size_t i=0; i<numAtoms_; i++) {atom_pos[i].resize(3);}
-    
-    //Set the point for the input file
-    dumpFile_.seekg(pos_);
-
-    int index = 0;
-    int type;
-    double x[3];
-    std::string line;
-    for(size_t i=0; i<numAtoms_; i++) {
-        std::getline(dumpFile_,line);
-        if (!line.compare("")){
-          std::cerr << "Error! Line is empty while reading coords, and it shouldn't be!" << std::endl;
-          exit(1);
-        }
-        std::stringstream sin(line);
-        sin >> index >> type;
-        index -= 1;
-        for(size_t j=0; j<3; j++) {
-            sin >> x[j];
-            atom_pos[index][j] = x[j];
-        }
+    if (numAtoms_ <= 0){
+        std::cout << "Error! Trying to get_quat() but numAtoms <= 0. Could the traj file be empty?" << std::endl;
+        exit(1);
     }
-    return atom_pos;
-};
-
-//Return the quaterions as a vector of vectors
-std::vector<std::vector<double>> TrajectoryIterator::get_quat() {
-    std::vector<std::vector<double>> atom_quat;
-
-    //Initialize and size the quat vectors to num atoms
-    atom_quat.resize(numAtoms_);
-    for(size_t i=0; i<numAtoms_; i++) {atom_quat[i].resize(4);}
 
     //Set the point for the input file
     dumpFile_.seekg(pos_);
@@ -254,20 +295,28 @@ std::vector<std::vector<double>> TrajectoryIterator::get_quat() {
           std::cerr << "Error! Line is empty while reading quats, and it shouldn't be!" << std::endl;
           exit(1);
         }
-        std::stringstream sin(line);
-        sin >> index >> type;
-        index -= 1;
-        for(size_t j=0; j<3; j++) {sin >> x[j];}
-        for(size_t j=0; j<4; j++) {
-            sin >> q[j];
-            atom_quat[index][j] = q[j];
+		if (!check_crash(line)) {
+            std::stringstream sin(line);
+            sin >> index >> type;
+            index -= 1;
+            for(size_t j=0; j<3; j++) {
+                sin >> x[j];
+				coords_[index][j] = x[j]; 
+            }
+            for(size_t j=0; j<4; j++) {
+                sin >> q[j];
+                quats_[index][j] = q[j];
+            }
+        }
+        else {
+            return;
         }
     }
-    return atom_quat;
+    return;
 };
 
 //Convert the quaternions to f,v,u vectors
-std::vector<std::vector<double>> TrajectoryIterator::get_vect(std::vector<std::vector<double>> quats, char type) {
+std::vector<std::vector<double>> TrajectoryIterator::get_vect(char type) {
     //Initialize the orient vector
     std::vector<std::vector<double>> vects;
     vects.resize(numAtoms_);
@@ -284,16 +333,16 @@ std::vector<std::vector<double>> TrajectoryIterator::get_vect(std::vector<std::v
     //Construct the LAMMPS formalism for quaternion calculations
     quaternion rquat;
     double norm;
-    for(size_t i=0; i<quats.size(); i++) {
-        norm = sqrt(quats[i][0]*quats[i][0] +  quats[i][1]*quats[i][1] + quats[i][2]*quats[i][2] + quats[i][3]*quats[i][3]);
+    for(size_t i=0; i<quats_.size(); i++) {
+        norm = sqrt(quats_[i][0]*quats_[i][0] +  quats_[i][1]*quats_[i][1] + quats_[i][2]*quats_[i][2] + quats_[i][3]*quats_[i][3]);
         if (fabs(norm - 1.0) > 1e-3){
             std::cerr<<"Norm of quat is too big ("<<norm<<")! You've screwed something up with quat math!"<<std::endl;
             exit(1);
         }
-        rquat[0] = quats[i][0];
-        rquat[1] = quats[i][1];
-        rquat[2] = quats[i][2];
-        rquat[3] = quats[i][3];
+        rquat[0] = quats_[i][0];
+        rquat[1] = quats_[i][1];
+        rquat[2] = quats_[i][2];
+        rquat[3] = quats_[i][3];
 
         //Using the lammps equations (for now!) calculate the vector of choice
         quat_vec_rot(fvu,fvu0,rquat);
@@ -307,14 +356,15 @@ std::vector<std::vector<double>> TrajectoryIterator::get_vect(std::vector<std::v
 };
 
 
-
 //Get the type of each of the atoms
 //This should only really be called once
-std::vector<int> TrajectoryIterator::get_type() {
-    std::vector<int> atom_type;
-
+void TrajectoryIterator::get_type() {
+    if (numAtoms_ <= 0){
+        std::cout << "Error! Trying to get_type() but numAtoms <= 0. Could the traj file be empty?" << std::endl;
+        exit(1);
+    }
     //Initialize and size the vector
-    atom_type.resize(numAtoms_);
+    types_.resize(numAtoms_);
 
     //Set the point for the input file
     dumpFile_.seekg(pos_);
@@ -327,9 +377,135 @@ std::vector<int> TrajectoryIterator::get_type() {
         std::stringstream sin(line);
         sin >> index >> type;
         index -= 1;
-        atom_type[index] = type-1;
+        types_[index] = type;
     }
-    return atom_type;
+};
+
+//unwraps the coordinates of the system (to be used when get_com is not called)
+void TrajectoryIterator::unwrap_coords(void) {
+    double dist = 0, distChange = 0;
+    for (size_t iatom=1; iatom < numAtoms_ ; iatom++){
+        //Check to see if atoms cross pbc with subsequent additions
+        for(size_t k = 0; k < 3; k++) {
+            dist = coords_[iatom][k]-coords_[iatom-1][k]; //It should appear as a difference with each dimension
+            distChange = check_pbc(dist,k,iatom);
+            coords_[iatom][k] = coords_[iatom-1][k]+distChange;
+        }
+    }
+};
+
+//the get_com function takes in an old vector of the center of mass and checks to make sure the new one isn't going over periodic boundaries
+std::vector<double> TrajectoryIterator::get_com(void) {
+    std::vector<double> com(3,0);
+    std::vector<double> coordsPrev(3,0);
+    std::vector<double> masses(3,0);
+    
+    //The masses are hard-coded here for now
+    masses[0] = 196666.0000;
+    masses[1] = 1950.000000;  
+    masses[2] = 19500.00000;  
+
+    int typei;
+    bool pbc[3] = {true,true,true}; //pbc is the condition that the current bead is within the minimum image convention of the first bead
+    double dist = 0, distChange = 0;
+    double totalmass = 0;
+
+    //Get the information of the first bead and add it to com
+    for(size_t k=0;k<3;k++) {
+        coordsPrev[k] = coords_[0][k];
+        com[k] += coordsPrev[k]*masses[types_[0]-1];
+    }
+    totalmass+= masses[types_[0]];
+
+    //As a result start from atom 1
+    for (size_t iatom=1; iatom < numAtoms_ ; iatom++){
+        //Check to see if atoms cross pbc with subsequent additions
+        typei = types_[iatom]-1;
+        for(size_t k = 0; k < 3; k++) {
+            dist = coords_[iatom][k]-coords_[iatom-1][k]; //It should appear as a difference with each dimension
+            distChange = check_pbc(dist,k,iatom);
+            double diff = fabs(distChange-dist);
+            if (diff > 0.1 && pbc[k]) { pbc[k] = false; }
+            else if (diff > 0.1 && !pbc[k]) { pbc[k] = true; }
+            else if (diff < 0.1 && !pbc[k]) { pbc[k] = false; }
+            else if (diff < 0.1 && pbc[k]) { pbc[k] = true; }
+
+            if(pbc[k]) { coordsPrev[k] = coords_[iatom][k]; }
+            else if(!pbc[k]) { coordsPrev[k] += distChange; }
+            com[k] += (coordsPrev[k]*masses[typei]);
+        }
+        totalmass += masses[typei];
+    }
+    com[0] /= totalmass;
+    com[1] /= totalmass;
+    com[2] /= totalmass;
+
+    //Check if the center of mass crossed periodic boundaries and then update accordingly relative to previous position
+    //for (size_t k = 0; k < 3; k++) {
+    //    dist = com[k] - comOld_[k];
+    //    distChange = check_pbc(dist,k);
+    //    com[k] = comOld_[k]+distChange;
+    //    comOld_[k] = com[k];
+    //}
+
+    return com;
+};
+
+double TrajectoryIterator::check_pbc(double dist, int dim, int i) {
+    if (types_[i-1] <= 3 && types_[i] > 3) { return dist; }
+    if (dist > halfBox_[dim]) {return dist - 2.0*halfBox_[dim];}
+    else if (dist < -halfBox_[dim]) {return dist + 2.0*halfBox_[dim];}
+    else {return dist;}
+};
+
+// Returns the Euclidean distance between siteA and siteB
+// Note: the sites that are input are the same as that of the in.lammps file!
+double TrajectoryIterator::get_dist(int siteA, int siteB) {
+    double dist = 0.0, dx = 0.0;
+    for (size_t i = 0; i < 3; i++) {
+        dx = coords_[siteA-1][i]-coords_[siteB-1][i];
+        //dx = check_pbc(dx,i);
+        dist += dx*dx;
+    }
+    return sqrt(dist);
+};
+
+// Returns the angle site ABC (B is the middle site)
+// Note: the sites that are input are the same as that of the in.lammps file!
+double TrajectoryIterator::get_angleSites(int siteA, int siteB, int siteC) {
+    double angle = 0.0, magA = 0, magB = 0; 
+    std::vector<double> vectA;
+    std::vector<double> vectB;
+
+    vectA = get_distVect(siteA,siteB);
+    vectB = get_distVect(siteB,siteC);
+    magA = get_dist(siteA,siteB);
+    magB = get_dist(siteB,siteC);
+
+    for (size_t i = 0; i < 3; i++) {
+        vectA[i] /= magA;
+        vectB[i] /= magB;
+        angle += vectA[i]*vectB[i];
+    }
+
+    if (angle > 1) angle = 1;
+    if (angle <-1) angle =-1;
+
+    return acosf(angle)*180./M_PI;
+};
+
+// Returns the vector between siteA and siteB
+// Note: the tail of the vector begins at siteB and the head is at siteA!
+// Note: the sites that are input are the same as that of the in.lammps file!
+std::vector<double> TrajectoryIterator::get_distVect(int siteA, int siteB) {
+    std::vector<double> distVect(3);
+    double dx = 0;
+    for (size_t i = 0; i < 3; i++) {
+        dx = coords_[siteA-1][i]-coords_[siteB-1][i];
+        //dx = check_pbc(dx,i);
+        distVect[i] = dx;
+    }
+    return distVect;
 };
 
 int TrajectoryIterator::get_numAtoms() {
@@ -338,35 +514,31 @@ int TrajectoryIterator::get_numAtoms() {
 
 std::vector<float> TrajectoryIterator::get_boxDim() {
     return boxDim_;
-}
+};
 void TrajectoryIterator::append_current_frame_to_file(std::string filename){
     //Set the point for the input file
     //dumpFile_.seekg(pos_);
 
-    std::ofstream file(filename, std::ofstream::app); //FIXME what flags?
-    file << "ITEM: TIMESTEP" << std::endl;
-    file << timestep_ << std::endl;
-    file << "ITEM: NUMBER OF ATOMS" << std::endl;
-    file << numAtoms_ << std::endl;
-    file << "ITEM: BOX BOUNDS pp pp pp" << std::endl;
-    file << boxDim_[0] << " " << boxDim_[1] << std::endl;
-    file << boxDim_[2] << " " << boxDim_[3] << std::endl;
-    file << boxDim_[4] << " " << boxDim_[5] << std::endl;
-    file << "ITEM: ATOMS id type x y z c_q[1] c_q[2] c_q[3] c_q[4]" << std::endl;
-    std::vector<int> types;
-    std::vector<std::vector<double>> atoms;
-    std::vector<std::vector<double>> quats;
-    atoms = get_coord();
-    quats = get_quat();
-    types = get_type();
-    for (int i = 0; i < numAtoms_; i++){
-        file << i+1 << " " << types[i]+1 << " ";
-        file << atoms[i][0] << " " << atoms[i][1] << " " << atoms[i][2] << " ";
-        file << quats[i][0] << " " << quats[i][1] << " " << quats[i][2] << " " << quats[i][3];
-        file << std::endl;
+    if(!crash_) {
+        std::ofstream file(filename, std::ofstream::app); //FIXME what flags?
+        file << "ITEM: TIMESTEP" << std::endl;
+        file << timestep_ << std::endl;
+        file << "ITEM: NUMBER OF ATOMS" << std::endl;
+        file << numAtoms_ << std::endl;
+        file << "ITEM: BOX BOUNDS pp pp pp" << std::endl;
+        file << boxDim_[0] << " " << boxDim_[1] << std::endl;
+        file << boxDim_[2] << " " << boxDim_[3] << std::endl;
+        file << boxDim_[4] << " " << boxDim_[5] << std::endl;
+        file << "ITEM: ATOMS id type x y z c_q[1] c_q[2] c_q[3] c_q[4]" << std::endl;
+        get_info();
+        for (int i = 0; i < numAtoms_; i++){
+            file << i+1 << " " << types_[i] << " ";
+            file << coords_[i][0] << " " << coords_[i][1] << " " << coords_[i][2] << " ";
+            file << quats_[i][0] << " " << quats_[i][1] << " " << quats_[i][2] << " " << quats_[i][3];
+            file << std::endl;
+        }
+        file.close();
     }
-    file.close();
-
 }
 
 /*
@@ -391,3 +563,10 @@ int TrajectoryIterator::get_current_natoms(){
 void TrajectoryIterator::clear_file_errors(){
     dumpFile_.clear();
 } 
+bool TrajectoryIterator::get_crash(){
+	return crash_;
+}
+std::vector<int> TrajectoryIterator::get_types(){
+    get_type();
+    return types_;
+}
