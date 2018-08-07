@@ -164,32 +164,14 @@ int main(int argc, char**argv){
         }
 
         //calculate COM
-        double com[3], totalmass;
-        com[0] =0.0;
-        com[1] =0.0;
-        com[2] =0.0;
-        totalmass = 0;
-        for (size_t iatom=0; iatom < natom; iatom++){
-          type = atom_types[iatom]-1;
-          com[0] += parser.coords_[iatom][0]*masses[type];
-          com[1] += parser.coords_[iatom][1]*masses[type];
-          com[2] += parser.coords_[iatom][2]*masses[type];
-          totalmass += masses[type];
-        }
-        com[0] /= totalmass;
-        com[1] /= totalmass;
-        com[2] /= totalmass;
-
+        std::vector<double> com(3,0);
+        parser.unwrap_coords();
+        com = parser.get_com();
 
         //Write colors for visualization
         if (firstframe){
             coloring = (double*) calloc(nnewatom,sizeof(double));
-        //    double ransum,ran;
-        //    ransum = 0;
             for (size_t j=0;j<nnewatom; j++){
-        //        ran = myrandom_gauss(1.0);
-        //        ransum += ran;
-        //        coloring[j] = ransum;
                 coloring[j] = 0.0;
             }
         }
