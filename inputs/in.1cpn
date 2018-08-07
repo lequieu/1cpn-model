@@ -132,7 +132,7 @@ label skipinclude
 ################################################################
 
 
-timestep     20  # 1.2 pico-seconds
+timestep     60  # 60 femtoseconds
 
 group dnas molecule 1
 group nucs molecule >= 2
