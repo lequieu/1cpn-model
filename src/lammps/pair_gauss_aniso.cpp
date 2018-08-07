@@ -353,18 +353,19 @@ void PairGaussAniso::init_style()
   else cut_respa = NULL;
 }
 
+
 /* ----------------------------------------------------------------------
    neighbor callback to inform pair style of neighbor list to use
    regular or rRESPA
 ------------------------------------------------------------------------- */
-
-void PairGaussAniso::init_list(int id, NeighList *ptr)
-{
-  if (id == 0) list = ptr;
-  else if (id == 1) listinner = ptr;
-  else if (id == 2) listmiddle = ptr;
-  else if (id == 3) listouter = ptr;
-}
+// removed for compatability with LAMMPS May 2018
+//void PairGaussAniso::init_list(int id, NeighList *ptr)
+//{
+//  if (id == 0) list = ptr;
+//  else if (id == 1) listinner = ptr;
+//  else if (id == 2) listmiddle = ptr;
+//  else if (id == 3) listouter = ptr;
+//}
 
 /* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i

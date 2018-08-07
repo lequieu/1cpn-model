@@ -42,12 +42,11 @@ Compiling LAMMPS with 1CPN
     source ~/.bashrc
 
 
-3. Download a fresh copy of LAMMPS and checkout the `stable_31Mar2017` tag. Even if you already have a copy of LAMMPS, its recommended that you download a new copy specifically for 1CPN.
-
+3. Download a fresh copy of LAMMPS and checkout the `stable_16Mar2018` tag. Even if you already have a copy of LAMMPS, its recommended that you download a new copy specifically for 1CPN.  
 ::
 
   git clone -b stable https://github.com/lammps/lammps.git lammps-1cpn
-  git checkout -b stable_31Mar2017
+  git checkout -b stable_16Mar2018
 
 
 4. Clone the 1CPN model
@@ -76,7 +75,7 @@ Compiling LAMMPS with 1CPN
 
   git clone -b stable https://github.com/lammps/lammps.git lammps-1cpn
   cd lammps-1cpn
-  git checkout -b stable_31Mar2017
+  git checkout -b stable_16Mar2018
 
 
 4. Clone the 1CPN model.
