@@ -34,28 +34,21 @@ int main(int argc, char**argv){
     parser.load_dump(dumpfilename.c_str());
 
     std::vector<float> box_dim;
-    //std::vector<std::vector<double>> vects_f;
-    //std::vector<std::vector<double>> vects_v;
-    //std::vector<std::vector<double>> vects_u;
     natoms = parser.get_numAtoms();
     ntimestep = parser.get_numFrames();
 
     int nnucl; 
     std::vector<int> nucl_ids;
-    double Rnucl = 50; //this is just a guess
+    double Rnucl = 54.6; //Arya2006 
     double S1 = 11.1; //Arya2006 eq 32
     double S20w;
        
     bool firstframe = true;
     //Loop through the dump file using the parser
-    //for(size_t i=0; i<timestep; i++) {
     for(size_t i=0; i<ntimestep; i++) {
        
+        //Get the frame timestep and move to next frame
         parser.next_frame();
-
-        //vects_f = parser.get_vect('f');
-        //vects_v = parser.get_vect(quats,'v');
-        //vects_u = parser.get_vect('u');
         t = parser.get_current_timestep();
 
         if (firstframe){
@@ -67,9 +60,11 @@ int main(int argc, char**argv){
                 nnucl++;
               }
             }
-
         }
   
+        //unwrap the coordinates
+        parser.unwrap_coords();
+
         //compute sedimentation coeff 
         double sum=0;
         double dx,dy,dz,dr;
@@ -79,10 +74,6 @@ int main(int argc, char**argv){
           for(size_t k=j+1;k<nnucl;k++){
             nuclk = nucl_ids[k];
             dr = parser.get_dist(nuclk,nuclj);
-            //dx = parser.coords_[nuclk][0] - parser.coords_[nuclj][0];
-            //dy = parser.coords_[nuclk][1] - parser.coords_[nuclj][1];
-            //dz = parser.coords_[nuclk][2] - parser.coords_[nuclj][2];
-            //dr = sqrt(dx*dx+dy*dy+dz*dz);
             sum += 1.0/dr;
           }
         }

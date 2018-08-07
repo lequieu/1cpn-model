@@ -7,25 +7,29 @@
 #include "trajectory_iterator.h"
 
 int main(int argc, char**argv){
-
-    if (argc != 4){
-        std::cout<<"Usage: "<<argv[0]<<" <dump file> <output file> <cutoff dist in angstroms> <nframes>"<<std::endl;
-        std::cout<<"Note: if you want to use all snapshots set nframes to 0"<<std::endl;
+    if (argc != 5){
+        std::cout<<"Usage: "<<argv[0]<<" <dump file> <output file> <cutoff dist in angstroms> <fraction of data>"<<std::endl;
         exit(1);
     }
 
     //Declare variables here
-    long long ntimestep,t,nframe; //Number of snapshots, iterator for current timestep
+    long long ntimestep,t,ncalcstep; //Number of snapshots, iterator for current timestep
     int natoms; //Number of atoms
     std::string dumpfilename; //Name of the dumpfile (usually traj.dump)
     std::string outfilename; //Name of output file
     int rcut; //Cutoff radius for calculating contact map
+    float dfrac; //data fraction
 
     //Parse all inputs
     dumpfilename = argv[1];
     outfilename = argv[2];
     rcut = std::stoi(argv[3]); //Cutoff for the contact maps
-    nframe = std::stoi(argv[4]); //The last nframes to be used
+    dfrac = std::stof(argv[4]); //Fraction of the data to use
+
+    if (dfrac > 1.0 || dfrac < 0.0) {
+        std::cout<<"Error: Fraction is greater than possible. Exiting...."<<std::endl;
+        exit(1);
+    }
 
     //Set up all vectors needed for the trajectory parser class
     TrajectoryIterator parser;
@@ -36,14 +40,6 @@ int main(int argc, char**argv){
     natoms = parser.get_numAtoms();
     ntimestep = parser.get_numFrames();
 
-    //The number of frames to calculate with
-    //Checks to see if number is greater than possible
-    if (nframe != 0) {nframe = ntimestep-nframe;}
-    if (nframe < 0) {
-        std::cerr<<"Error: frames chosen is greater than number of frames"<<std::endl;
-        exit(1);
-    }
-
     //Initialize the contact and nucl ids here
     int nnucl; 
     std::vector<int> nucl_ids;
@@ -51,12 +47,10 @@ int main(int argc, char**argv){
     bool firstframe = true;
     double sum = 0;
 
-    //Loop through the first nframes, but store nucl ids in frame 1
-    //Does not calculate contact map until specified number of frames
-    for(size_t i=0; i<ntimestep; i++) {
+    //Loop through the dump file using the parser
+    for(size_t i=0; i<ncalcstep; i++) {
         parser.next_frame();
-        t = parser.get_current_timestep();
-        if (firstframe)  {
+        if (firstframe){
             nnucl = 0;
             std::vector<int> types = parser.get_types();
             for (size_t j=0;j<natoms;j++){
@@ -70,15 +64,53 @@ int main(int argc, char**argv){
             for (size_t j=0;j<nucl_ids.size();j++) {
                 contacts[j].resize(nucl_ids.size());
             }
-            firstframe = false;
         }
+        if (firstframe) firstframe = false;
+    }
+
+    //Loop through the dump file using the parser
+    for(size_t i=0; i<ncalcstep; i++) {
+        parser.next_frame();
+        if (firstframe){
+            nnucl = 0;
+            std::vector<int> types = parser.get_types();
+            for (size_t j=0;j<natoms;j++){
+              if (types[j] == 1){ //is nucleosome
+                nucl_ids.push_back(j+1);
+                nnucl++;
+              }
+            }
+            //resize the 2d contact map data
+            contacts.resize(nucl_ids.size());
+            for (size_t j=0;j<nucl_ids.size();j++) {
+                contacts[j].resize(nucl_ids.size());
+            }
+        }
+        if (firstframe) firstframe = false;
     }
 
     //Second loop for the frames that are included in the contact map
-    for(size_t i=nframe; i<ntimestep; i++) { 
-        //iterate through the last nframes that were chosen
+    for(size_t i=ncalcstep; i<ntimestep; i++) {
+       
         parser.next_frame();
         t = parser.get_current_timestep();
+
+        if (firstframe){
+            nnucl = 0;
+            std::vector<int> types = parser.get_types();
+            for (size_t j=0;j<natoms;j++){
+              if (types[j] == 1){ //is nucleosome
+                nucl_ids.push_back(j+1);
+                nnucl++;
+              }
+            }
+            //resize the 2d contact map data
+            contacts.resize(nucl_ids.size());
+            for (size_t j=0;j<nucl_ids.size();j++) {
+                contacts[j].resize(nucl_ids.size());
+            }
+        }
+  
         //compute contact map
         double dist = 0;
         int nuclj, nuclk;
@@ -89,7 +121,8 @@ int main(int argc, char**argv){
             dist = parser.get_dist(nuclj,nuclk);
             if(dist < rcut) {contacts[j][k] += 1.0;}
           }
-        } 
+        }
+        
         if (firstframe) firstframe = false;
         sum++;
     }  

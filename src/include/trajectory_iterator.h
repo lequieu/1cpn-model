@@ -67,7 +67,7 @@ class TrajectoryIterator {
         std::vector<float> get_boxDim(void);
         std::vector<double> get_com(void);
         std::vector<double> get_distVect(int,int);
-        double check_pbc(double,int);
+        double check_pbc(double,int,int);
         double get_dist(int,int);
         double get_angleSites(int,int,int);
         long long get_current_timestep(void); 
@@ -388,7 +388,7 @@ void TrajectoryIterator::unwrap_coords(void) {
         //Check to see if atoms cross pbc with subsequent additions
         for(size_t k = 0; k < 3; k++) {
             dist = coords_[iatom][k]-coords_[iatom-1][k]; //It should appear as a difference with each dimension
-            distChange = check_pbc(dist,k);
+            distChange = check_pbc(dist,k,iatom);
             coords_[iatom][k] = coords_[iatom-1][k]+distChange;
         }
     }
@@ -405,7 +405,7 @@ std::vector<double> TrajectoryIterator::get_com(void) {
     masses[1] = 1950.000000;  
     masses[2] = 19500.00000;  
 
-    int typei,typej;
+    int typei;
     bool pbc[3] = {true,true,true}; //pbc is the condition that the current bead is within the minimum image convention of the first bead
     double dist = 0, distChange = 0;
     double totalmass = 0;
@@ -423,7 +423,7 @@ std::vector<double> TrajectoryIterator::get_com(void) {
         typei = types_[iatom]-1;
         for(size_t k = 0; k < 3; k++) {
             dist = coords_[iatom][k]-coords_[iatom-1][k]; //It should appear as a difference with each dimension
-            distChange = check_pbc(dist,k);
+            distChange = check_pbc(dist,k,iatom);
             double diff = fabs(distChange-dist);
             if (diff > 0.1 && pbc[k]) { pbc[k] = false; }
             else if (diff > 0.1 && !pbc[k]) { pbc[k] = true; }
@@ -441,18 +441,18 @@ std::vector<double> TrajectoryIterator::get_com(void) {
     com[2] /= totalmass;
 
     //Check if the center of mass crossed periodic boundaries and then update accordingly relative to previous position
-    for (size_t k = 0; k < 3; k++) {
-        dist = com[k] - comOld_[k];
-        distChange = check_pbc(dist,k);
-        double diff = fabs(distChange-dist);
-        com[k] = comOld_[k]+distChange;
-        comOld_[k] = com[k];
-    }
+    //for (size_t k = 0; k < 3; k++) {
+    //    dist = com[k] - comOld_[k];
+    //    distChange = check_pbc(dist,k);
+    //    com[k] = comOld_[k]+distChange;
+    //    comOld_[k] = com[k];
+    //}
 
     return com;
 };
 
-double TrajectoryIterator::check_pbc(double dist, int dim) {
+double TrajectoryIterator::check_pbc(double dist, int dim, int i) {
+    if (types_[i-1] <= 3 && types_[i] > 3) { return dist; }
     if (dist > halfBox_[dim]) {return dist - 2.0*halfBox_[dim];}
     else if (dist < -halfBox_[dim]) {return dist + 2.0*halfBox_[dim];}
     else {return dist;}
@@ -464,7 +464,7 @@ double TrajectoryIterator::get_dist(int siteA, int siteB) {
     double dist = 0.0, dx = 0.0;
     for (size_t i = 0; i < 3; i++) {
         dx = coords_[siteA-1][i]-coords_[siteB-1][i];
-        dx = check_pbc(dx,i);
+        //dx = check_pbc(dx,i);
         dist += dx*dx;
     }
     return sqrt(dist);
@@ -502,7 +502,7 @@ std::vector<double> TrajectoryIterator::get_distVect(int siteA, int siteB) {
     double dx = 0;
     for (size_t i = 0; i < 3; i++) {
         dx = coords_[siteA-1][i]-coords_[siteB-1][i];
-        dx = check_pbc(dx,i);
+        //dx = check_pbc(dx,i);
         distVect[i] = dx;
     }
     return distVect;
