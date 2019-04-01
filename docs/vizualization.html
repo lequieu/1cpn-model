@@ -1,0 +1,211 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Vizualization of 1CPN &#8212; 1CPN-model 0.5 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Analysis of 1CPN Simulations" href="analysis.html" />
+    <link rel="prev" title="Initialization" href="init.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="analysis.html" title="Analysis of 1CPN Simulations"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="init.html" title="Initialization"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">1CPN-model 0.5 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Vizualization of 1CPN</a><ul>
+<li><a class="reference internal" href="#option-1-basic-vmd">Option 1: Basic VMD</a></li>
+<li><a class="reference internal" href="#option-2-enhanced-vmd-recommended">Option 2. Enhanced VMD (recommended)</a></li>
+<li><a class="reference internal" href="#option-3-blender">Option 3. Blender</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="init.html"
+                        title="previous chapter">Initialization</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="analysis.html"
+                        title="next chapter">Analysis of 1CPN Simulations</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/vizualization.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="vizualization-of-1cpn">
+<span id="label-viz"></span><h1>Vizualization of 1CPN<a class="headerlink" href="#vizualization-of-1cpn" title="Permalink to this headline">¶</a></h1>
+<p>Each site in the 1CPN model is represented by an anisotropic potential, where both the orientation and the position of a site.</p>
+<p>Vizualizing the 1CPN model is more chalenging than many other molecular models because each coarse-grained sit in 1CPN in represented by an anisotropic potential. Most vizualization tools (like VMD) are designed for isotropic sites, and generally represent sites in the vizualization by spheres. Therefore because of its anisotropic potentials in 1CPN,  vizualizing the model requires some additional steps.</p>
+<p>The 1CPN model includes offers several workflows for vizualizing 1CPN trajectories.
+The ideal workflow depends on the type of simulation you have run, and the phenomena of interest that you want the simulation to highlight.
+For this Quick Start Tutorial, only workflows using <a class="reference external" href="http://www.ks.uiuc.edu/Research/vmd/">VMD</a> (Visual Molecular Dynamics) are decribed.
+The 1CPN model also contains tools for high quality vizualization using <a class="reference external" href="https://www.blender.org/">Blender</a> .</p>
+<p>Users who do not have VMD should install it following the instructions at the  <a class="reference external" href="http://www.ks.uiuc.edu/Research/vmd/">VMD website</a> (note that VMD 1.9.2 was used in this tutorial).</p>
+<p>Throughout this tutorial it is assumed that VMD is accessed though  <cite>vmd</cite> at the command line.</p>
+<div class="section" id="option-1-basic-vmd">
+<h2>Option 1: Basic VMD<a class="headerlink" href="#option-1-basic-vmd" title="Permalink to this headline">¶</a></h2>
+<p><em>Speed = Fast, Vizualization Quality=Poor</em></p>
+<p>The 1CPN can be quickly vizualized by loading <cite>traj.dump</cite> directly into LAMMPS.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vmd</span> <span class="ow">in</span><span class="o">.</span><span class="n">psf</span> <span class="o">-</span><span class="n">lammpstrj</span> <span class="n">traj</span><span class="o">.</span><span class="n">dump</span>
+</pre></div>
+</div>
+<p>Now that the trajectory is loaded into LAMMPS, a suitable visual representation can be loaded by  Opening the <cite>Tk console</cite>  by clicking on Extensions-&gt;Tk Console, in the <cite>VMD Main</cite> window, and executing the following command.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="o">&lt;</span><span class="n">path</span><span class="o">-</span><span class="n">to</span><span class="o">-</span><span class="n">D_1CPN</span><span class="o">&gt;/</span><span class="mi">1</span><span class="n">cpn</span><span class="o">-</span><span class="n">model</span><span class="o">//</span><span class="n">utils</span><span class="o">/</span><span class="n">vmd</span><span class="o">/</span><span class="mi">1</span><span class="n">cpn</span><span class="o">.</span><span class="n">vmd</span>
+</pre></div>
+</div>
+<p>Note that in this case the bash variable <cite>${D_1CPN}</cite> cannot be used and <cite>&lt;path-to-D_1CPN&gt;</cite> must be hardcoded manually.
+If you will be vizualizing the 1CPN Model frequently, it is recommended that you add this <cite>source</cite> command a file located at <cite>~/.vmdrc</cite> so that it will be executed automatically when VMD opens.</p>
+<p>Though this visualization can be useful for some purposes (like examining bond lengths and angles), it is generally unsuitable for visualizing large simulations.</p>
+<p>FIXME make 1cpn.vmd look acceptable for vizualizing the raw traj.dump
+FIXME SAMPLE VIZUALIZATION</p>
+</div>
+<div class="section" id="option-2-enhanced-vmd-recommended">
+<h2>Option 2. Enhanced VMD (recommended)<a class="headerlink" href="#option-2-enhanced-vmd-recommended" title="Permalink to this headline">¶</a></h2>
+<p><em>Speed = Medium-Fast, Vizualization Quality=High</em></p>
+<p>Another approach for vizualizing the 1CPN model is to convert <cite>traj.dump</cite> into a new file where anisotropic sites are more easily vizualized, and then visualizing this new trajectory file direcly in VMD.</p>
+<p>In 1CPN, this conversion tool is an executable <cite>dump-to-xyz</cite> that is located in <cite>${D_1CPN}/bin/</cite> and is compiled by</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cd ${D_1CPN}/1cpn-model/src/viz
+make
+</pre></div>
+</div>
+<p>FIXME, this breaks if LAMMPS_SRC isn’t canonical.
+FIXME remove quat_vec_rot from trajectory_iterator.h
+FIXME have a single Makefile in ${D_1CPN}</p>
+<p>The executable <cite>dump-to-xyz</cite> takes two arguements:</p>
+<ol class="arabic simple">
+<li>The filename of an existing trajectory (<cite>traj.dump</cite> in this example),  and</li>
+<li>The filename prefix of the new trajectory files to be generated  (<cite>traj_1cpn</cite> here).</li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>${D_1CPN}/1cpn-model/bin/dump-to-xyz traj.dump traj_1cpn
+</pre></div>
+</div>
+<p>After executing this command, two new files (<cite>traj_1cpn.psf</cite> and <cite>traj_1cpn.xyz</cite>) are generated. These files contain a modified topology file (<cite>.psf</cite>) and a modified trajectory file (<cite>.xyz</cite>).
+Specifically, these new files contain create additioal (fictitious) sites that show the orientation of each 1CPN site. For Nucleosome sites, these fictitious sites are created to highlight their anisotropic shape (from the Zewdie potential LINKME). For DNA sites, fictitious sites are created to highlight the twist of the DNA molecule.</p>
+<p>These new files can be vizualized with VMD</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vmd</span> <span class="n">traj_1cpn</span><span class="o">.</span><span class="n">psf</span> <span class="n">traj_1cpn</span><span class="o">.</span><span class="n">xyz</span>
+<span class="c1"># or</span>
+<span class="n">vmd</span> <span class="n">traj_1cpn</span><span class="o">.*</span>
+</pre></div>
+</div>
+<p>An example of a nucleosome rendered using Option 2 is shown here:</p>
+<a class="reference internal image-reference" href="_images/viz_option2.jpg"><img alt="1CPN Model Vizualization - Option #2" class="align-center" src="_images/viz_option2.jpg" style="width: 334.5px; height: 217.0px;" /></a>
+</div>
+<div class="section" id="option-3-blender">
+<h2>Option 3. Blender<a class="headerlink" href="#option-3-blender" title="Permalink to this headline">¶</a></h2>
+<p><em>Speed=Low, Vizualization Quality=Very High</em></p>
+<p>The final option for vizualizing the 1CPN model is to use the open source 3D conputer graphics toolset <a class="reference external" href="https://www.blender.org/">Blender</a>.
+Blender is a very powerful flexible tool for vizualization and premits the customization of virtually any feature of a digital vizualization.
+Blender is not strictly designed for molecular vizualizaiton, and therefore</p>
+<p>This tutorial assumes a basic familiarity with Blender</p>
+<p>FIXME Is blender okay for many frames</p>
+<p>FIXME Clean up front of Blender script so that its easier for a new person</p>
+<ol class="arabic simple">
+<li>Setting up file paths and rendering options.</li>
+</ol>
+<p>The main script of interest is <cite>${D_1CPN}/1cpn-model/utils/blender/import_dump.py</cite> and cha</p>
+<p>PATH_ZEWDIE =
+PATH_TRAJ =</p>
+<dl class="docutils">
+<dt>::</dt>
+<dd>cd /tmp
+ln -s ${D_1CPN}/example/in.dump frame.dump</dd>
+</dl>
+<ol class="arabic simple" start="2">
+<li>Open blender, and change the bottom pannel to text editor</li>
+</ol>
+<a class="reference internal image-reference" href="_images/viz_blender-1.png"><img alt="_images/viz_blender-1.png" class="align-center" src="_images/viz_blender-1.png" style="width: 683.0px; height: 371.0px;" /></a>
+<ol class="arabic simple" start="3">
+<li>In the Text Editor window, click the <cite>Open</cite> button, and navigate to <cite>${D_1CPN}/1cpn-model/utils/blender/import_dump.py</cite>. Once the file is loaded, click the <cite>Run Script</cite> button. This could take a minute or two to run.</li>
+</ol>
+<a class="reference internal image-reference" href="_images/viz_blender-2.png"><img alt="_images/viz_blender-2.png" class="align-center" src="_images/viz_blender-2.png" style="width: 683.0px; height: 371.0px;" /></a>
+<ol class="arabic simple" start="4">
+<li>Now the 1CPN Model should be loaded into Blender.</li>
+</ol>
+<a class="reference internal image-reference" href="_images/viz_blender-3.png"><img alt="_images/viz_blender-3.png" class="align-center" src="_images/viz_blender-3.png" style="width: 683.0px; height: 371.0px;" /></a>
+<ol class="arabic simple" start="5">
+<li>To see the artistic rendering, move your mouse into the <cite>3D View</cite> panel and press <cite>Shift-Z</cite> to turn on Materials Rendering (or select <cite>Viewport Shading -&gt; Rendered</cite> using your mouse.) Switching to camera view results in the following image.</li>
+</ol>
+<a class="reference internal image-reference" href="_images/viz_blender-4.png"><img alt="_images/viz_blender-4.png" class="align-center" src="_images/viz_blender-4.png" style="width: 683.0px; height: 371.0px;" /></a>
+<p>Now that 1CPN is loaded into Blender, anything is possible. Change try new materials, add camera animations, go nuts!</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you’re going to be adventerous and start making significant modifications to <cite>${D_1CPN}/1cpn-model/utils/blender/import_dump.py</cite>, I would suggest making file edits in your own text editor and not Blender’s build-in one. If your choose to use your own text edior, just make sure to reload the updated <cite>import_dump.py</cite> in Blender’s text editor before clicking the <cite>Run Script</cite> button. Blender should notice when <cite>import_dump.py</cite> is changed and notify you, but its important to remember that Blender doesn’t refresh its internal text editor by default.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="analysis.html" title="Analysis of 1CPN Simulations"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="init.html" title="Initialization"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">1CPN-model 0.5 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Joshua Lequieu.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+    </div>
+  </body>
+</html>
