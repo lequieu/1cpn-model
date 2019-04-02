@@ -6,12 +6,10 @@
 Welcome to 1CPN-model's documentation!
 ======================================
 
-This documents the 1CPN model published as XYZ.
+If you haven't read the 1CPN paper yet, be sure to read it. 
 
-For 
+Lequieu, Cordoba, Moller, de Pablo "1CPN: A coarse-grained multi-scale model of chromatin" (2019) J. Chem. Phys.
 
-
-Contents:
 
 .. toctree::
    :maxdepth: 2
