@@ -12,38 +12,23 @@ description: "Write an awesome description for your new site here. You can edit 
 
 # Team names, titles and social links
 people:
-- name: Kay Garland
-  pic: 1
-  position: Lead Designer
-  social:
-    - title: twitter
-      url: #
-    - title: facebook
-      url: #
-    - title: stack-overflow
-      url: #
+- name: Joshua Lequieu
+  pic: lequieu
+  position: Former Ph.D. @ U Chicago, currently UCSB
 
-- name: Larry Parker
-  pic: 2
-  position: Lead Marketer
-  social:
-    - title: twitter
-      url: #
-    - title: facebook
-      url: #
-    - title: linkedin
-      url: #
+- name: Andres Cordoba
+  pic: acordoba
+  position: Former Post-Doc @ U Chicago, currently Universidad de Concepción
 
-- name: Diana Petersen
-  pic: 3
-  position: Lead Developer
-  social:
-    - title: twitter
-      url: #
-    - title: facebook
-      url: #
-    - title: google-plus
-      url: #
+- name: Joshua Moller
+  pic: moller
+  position: Graduate Student @ U Chicago
+
+- name: Juan de Pablo
+  pic: dePablo
+  position: Professor @ U Chicago
+
+
 
 # Social networks usernames (many more available: google-plus, flickr, dribbble, pinterest, instagram, tumblr, linkedin, etc.)
 social:
