@@ -1,7 +1,7 @@
 url: https://lequieu.github.io
 baseurl: /1cpn-model/
 downloadurl: https://github.com/lequieu/1cpn-model
-docurl: docs/
+docurl: https://1cpn-model.readthedocs.io
 
 # Site settings
 title: 1CPN Model
