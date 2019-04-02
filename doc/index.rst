@@ -7,6 +7,7 @@
 ======================================
 
 1CPN Website: https://lequieu.github.io/1cpn-model/ 
+
 1CPN GitHub: https://github.com/lequieu/1cpn-model
 
 The documentation here is for the 1CPN model implementation in LAMMPS. If you haven't read the 1CPN paper yet, it might be a good idea to read this first. 
