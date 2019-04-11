@@ -6,9 +6,9 @@ variable ps222 equal 0.292164
 variable ps224 equal 0.000000
 #note that energy units normalized to pe0 = 1
 #for counterion condensed:
-#variable pe0   equal 1.163958
+variable pe0   equal 1.163958
 #for non-condensed:
-variable pe0   equal 7.946940
+#variable pe0   equal 7.946940
 variable pe000 equal 0.605331
 variable pecc2 equal 0.527787
 variable pe220 equal -0.029012
