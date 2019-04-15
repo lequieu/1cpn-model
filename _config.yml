@@ -6,7 +6,7 @@ docurl: https://1cpn-model.readthedocs.io
 # Site settings
 title: 1CPN Model
 email: your-email@domain.com
-description: "Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description."
+description: "The 1CPN Model of Chromatin. A multi-scale molecular model implemented in LAMMPS."
 
 
 
@@ -32,31 +32,23 @@ people:
 
 # Social networks usernames (many more available: google-plus, flickr, dribbble, pinterest, instagram, tumblr, linkedin, etc.)
 social:
-  - title: twitter
-    url: http://twitter.com/jekyllrb
-  - title: facebook
-    url:
-  - title: stack-overflow
-    url: http://stackoverflow.com/questions/tagged/jekyll
-  - title: bitbucket 
-    url: http://bitbucket.org/jekyll
-  - title: github
-    url: http://github.com/jekyll
+  - title:
+    url: 
 
 # Postal address (add as many lines as necessary)
-address:
-  - line: 3481 Melrose Place
-  - line: Beverly Hills, CA 90210
+#address:
+#  - line: 3481 Melrose Place
+#  - line: Beverly Hills, CA 90210
 
 # Build settings
 markdown: kramdown
 permalink: pretty
 
 # force include documentation
-include: 
-    - docs
-keep_files:
-    - docs/_static
+#include: 
+#    - docs
+#keep_files:
+#    - docs/_static
 
 
 
