@@ -1,16 +1,23 @@
 
-1CPN in Lammps 
-==================
+1CPN Implementation in Lammps 
+==============================
 
-Linking 1CPN with Lammps
+Unfortunately, this page is still a bit rough. Its goal is to give an idea of the custom potentials specific to 1CPN that we implemented into LAMMPS and what the different parameters mean. 
+
+In this regard, this page is currently okay, but I'll conceed that it could use a bit of work. 
+
+
+Linking 1CPN with LAMMPS
 -------------------------
-Add Detailed instructions here
+
+To link 1CPN to LAMMPS please check out :ref:`label-quickstart`.
 
 
-1CPN High Performance
------------------------
+1CPN Performance across many processors
+----------------------------------------
 
-mention the `fix balance` command
+The key to good 1CPN performance across multiple processors is the  LAMMPS `fix balance` command.
+
 
 Custom 1CPN Potentials
 -----------------------

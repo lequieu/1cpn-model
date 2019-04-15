@@ -2,7 +2,7 @@
 .. _label-viz:
 
 Vizualization of 1CPN
-==================
+=======================
 
 
 Each site in the 1CPN model is represented by an anisotropic potential, where both the orientation and the position of a site.
