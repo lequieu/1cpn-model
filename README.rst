@@ -1,21 +1,22 @@
 1CPN Model
 ====================
 
-This is the 1CPN model for Chromatin. Yay!
+Welcome to the LAMMPS implementation of the 1CPN model of chromatin. 
 
-If you haven't yet read the 1CPN manuscript (CITE). Go read it now.
+The first thing you'll want to do is familiarize youself with the 1CPN manuscript:
+
+Lequieu, Cordoba, Moller, de Pablo "1CPN: A coarse-grained multi-scale model of chromatin" (2019) `J. Chem. Phys. 150, 215102 <<https://doi.org/10.1063/1.5092976>`
 
 
 Getting Started
 --------------------
-The best way to get started with 1CPN is to build the documentation (see below), and follow the "Quick Start" tutorial. This section will explain everything you need to know to use 1CPN model including:
+The best way to get started with 1CPN is go to the `documentation <https://1cpn-model.readthedocs.io/>`, and follow the "Quick Start" tutorial. This section will explain everything you need to know to use 1CPN model including:
 
 * Compiling LAMMPS with 1CPN
 * Generating an initial 1CPN configuration and input files
 * Running a Simple Simulation 
 * Vizualizing and Analyzing Results
 
-If you're impatient, and don't want to build the documentation, you can just open up ``./docs/quickstart.rst`` in your favorite text editor and follow the "Quick Start" turotial from there.
 
 
 What's Included
@@ -33,20 +34,7 @@ What's Included
 * **bin/** - Directory where built binary files are written
 
 
-
-Build Documentation
+Issues? 
 --------------------
 
-First you'll need to install `Sphinx <http://www.sphinx-doc.org/en/stable/index.html>`. Which should be included in your Linux distributions repository, and can be installed as simply as ::
-
-  # apt-get install python-sphinx
-
-If this doesn't work for you, visit the Sphinx website for information about setting Sphinx up on your machine. 
-
-Next, making the documentation is a breeze. Simply execute ::
-
-  $ cd doc
-  $ make html
-  $ firefox _build/html/index.html
-
-
+If you run into any issues don't hesitate to reach out. We'd love to help you get up and running.
