@@ -12,7 +12,7 @@
 
 The documentation here is for the 1CPN model implementation in LAMMPS. If you haven't read the 1CPN paper yet, it might be a good idea to read this first. Unfortunately, it's currently *In Press* but should be in print very soon.
 
-Lequieu, Cordoba, Moller, de Pablo "1CPN: A coarse-grained multi-scale model of chromatin" (2019) `J. Chem. Phys. 150, 215102 <<https://doi.org/10.1063/1.5092976>`_
+Lequieu, Cordoba, Moller, de Pablo "1CPN: A coarse-grained multi-scale model of chromatin" (2019) `J. Chem. Phys. 150, 215102 <https://doi.org/10.1063/1.5092976>`_
 
 In everything that follows, we'll be describing the technical details of 1CPN without much regard to why we're discussing them.
 
