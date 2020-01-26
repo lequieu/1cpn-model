@@ -23,14 +23,14 @@ files = angle_orient.cpp \
 lammps_files := $(addprefix $(LAMMPS_SRC)/,$(files))
 local_files := $(addprefix $(PWD)/,$(files))
 
-## these are files that already exist in LAMMPS but must be overwritten in order for 1CPN to compile
-## typically they contain only minor changes from the original versions in order to suppress errors, etc
-## Ideally there would be no files in this list, but in order to get things to work, we sometimes needed to hack LAMMPS a bit
-#override_file = atom.cpp # doesn't appear that I need to overrider atom.cpp anymore
-#
-#lammps_override_file := $(addprefix $(LAMMPS_SRC)/,$(override_file))
-#lammps_override_file_bak := $(addsuffix "_original",$(lammps_override_file))
-#local_override_file := $(addprefix $(PWD)/,$(override_file))
+# these are files that already exist in LAMMPS but must be overwritten in order for 1CPN to compile
+# typically they contain only minor changes from the original versions in order to suppress errors, etc
+# Ideally there would be no files in this list, but in order to get things to work, we sometimes needed to hack LAMMPS a bit
+override_file = atom.cpp
+
+lammps_override_file := $(addprefix $(LAMMPS_SRC)/,$(override_file))
+lammps_override_file_bak := $(addsuffix "_original",$(lammps_override_file))
+local_override_file := $(addprefix $(PWD)/,$(override_file))
 
 
 # link all .cpp .h files
@@ -55,14 +55,14 @@ link:
 	ln -sf $(local_files) -t ${LAMMPS_SRC}
 	
 	@#custom logic for atom.cpp (should remove eventually)
-	@#if [ `diff ${local_override_file} ${lammps_override_file} | grep "^>" | wc -l` -gt 2 ]; then \
-#		echo "${local_override_file} differs by more than two lines."; \
-#		exit 1; \
-#	else\
-#		echo "Note: Overriding ${lammps_override_file}. Saving old version to ${lammps_override_file_bak}";\
-#		cp ${lammps_override_file} ${lammps_override_file_bak};\
-#		ln -sf $(local_override_file) -t ${LAMMPS_SRC};\
-#	fi
+	@if [ `diff ${local_override_file} ${lammps_override_file} | grep "^>" | wc -l` -gt 2 ]; then \
+		echo "${local_override_file} differs by more than two lines."; \
+		exit 1; \
+	else\
+		echo "Note: Overriding ${lammps_override_file}. Saving old version to ${lammps_override_file_bak}";\
+		cp ${lammps_override_file} ${lammps_override_file_bak};\
+		ln -sf $(local_override_file) -t ${LAMMPS_SRC};\
+	fi
 
 
 unlink:
