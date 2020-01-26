@@ -30,7 +30,7 @@ Getting 1CPN and compiling with LAMMPS
 ::
 
   git clone -b stable https://github.com/lammps/lammps.git lammps-1cpn
-  git checkout -b stable_16Mar2018
+  git checkout stable_16Mar2018
 
 
 4. Clone the 1CPN model
@@ -40,35 +40,6 @@ Getting 1CPN and compiling with LAMMPS
   git clone https://github.com/lequieu/1cpn-model.git
 
 5. Link 1CPN with LAMMPS
-
-::
-
-  cd $D_1CPN/1cpn-model/src/lammps
-  make link
-
-6. Build LAMMPS
-
-::
-
-  cd $D_1CPN/lammps-1cpn/src
-  make serial
-
-
-::
-
-  git clone -b stable https://github.com/lammps/lammps.git lammps-1cpn
-  cd lammps-1cpn
-  git checkout -b stable_16Mar2018
-
-
-4. Clone the 1CPN model.
-
-:: 
-
-  git clone https://lequieu@bitbucket.org/lequieu/1cpn-model.git
-  git clone https://github.com/lequieu/1cpn-model.git
-
-5. Link 1CPN with LAMMPS.
 
 ::
 
@@ -133,10 +104,10 @@ Running a Simulation
 
     ${D_1CPN}/lammps-1cpn/src/lmp_serial -i in.1cpn
 
-Users unfamilair with LAMMPS are referred to the `LAMMPS docmentation <https://lammps.sandia.gov/doc/Manual.html>`_, for descriptions on LAMMPS output, and how to run different simulations.
+Users unfamilair with LAMMPS are referred to the `LAMMPS docmentation <https://lammps.sandia.gov/doc/Manual.html>`_ for descriptions on LAMMPS output, and how to run different simulations.
 
 
-Congratulations! You've just  performed (hopefully) your first simulation with 1CPN!
+Congratulations! You've just performed (hopefully) your first simulation with 1CPN!
 
 
 Vizualizing the Simulation
