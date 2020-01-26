@@ -4,16 +4,12 @@
 Vizualization of 1CPN
 =======================
 
-
-Each site in the 1CPN model is represented by an anisotropic potential, where both the orientation and the position of a site.
-
-
-Vizualizing the 1CPN model is more chalenging than many other molecular models because each coarse-grained sit in 1CPN in represented by an anisotropic potential. Most vizualization tools (like VMD) are designed for isotropic sites, and generally represent sites in the vizualization by spheres. Therefore because of its anisotropic potentials in 1CPN,  vizualizing the model requires some additional steps.
+Vizualizing the 1CPN model is more chalenging than many other molecular models because each coarse-grained sit in 1CPN in represented by an anisotropic potential. Most vizualization tools (like VMD) are designed for isotropic sites, and generally represent each site by a sphere. Consequently, due to the anisotropic potentials in 1CPN,  vizualizing the model requires some additional steps.
 
 The 1CPN model includes offers several workflows for vizualizing 1CPN trajectories. 
 The ideal workflow depends on the type of simulation you have run, and the phenomena of interest that you want the simulation to highlight. 
-For this Quick Start Tutorial, only workflows using `VMD <http://www.ks.uiuc.edu/Research/vmd/>`_ (Visual Molecular Dynamics) are decribed. 
-The 1CPN model also contains tools for high quality vizualization using `Blender <https://www.blender.org/>`_ .
+Below we describe two approaches for visualizing 1CPN  with `VMD <http://www.ks.uiuc.edu/Research/vmd/>`_ (Visual Molecular Dynamics) and 
+one approach for high quality vizualization using `Blender <https://www.blender.org/>`_.
 
 Users who do not have VMD should install it following the instructions at the  `VMD website <http://www.ks.uiuc.edu/Research/vmd/>`_ (note that VMD 1.9.2 was used in this tutorial).
 
