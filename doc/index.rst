@@ -29,6 +29,7 @@ Also, we welcome pull requests and so if you'd like to contribute to any part of
    init
    vizualization
    analysis
+   correction
    ...
 
 
