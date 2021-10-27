@@ -60,7 +60,7 @@ int main(int argc, char**argv){
         for(size_t j=0;j<natoms;j++){
           for(size_t k=0;k<3;k++){
             dist = parser.coords_[j][k]-com[k];
-            r[k] = parser.check_pbc(dist,k);
+            r[k] = parser.check_pbc(dist,k,j);
           }
           sumx += r[0]*r[0];
           sumy += r[1]*r[1];
